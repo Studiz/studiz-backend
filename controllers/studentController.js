@@ -28,14 +28,11 @@ const getAllStudents = async (req, res, next) => {
                     doc.id,
                     doc.data().firstName,
                     doc.data().lastName,
-                    doc.data().fatherName,
+                    doc.data().userName,
                     doc.data().class,
                     doc.data().age,
-                    doc.data().phoneNumber,
-                    doc.data().subject,
-                    doc.data().year,
-                    doc.data().semester,
-                    doc.data().status
+                    doc.data().displayName,
+                    doc.data().role,
                 );
                 studentsArray.push(student);
             });
