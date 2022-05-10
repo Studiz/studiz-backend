@@ -7,12 +7,43 @@ const firestore = firebase.firestore();
 const addClassroom = async (req, res, next) => {
     try {
         const data = req.body;
-        const classroom = {
-            "name": data.name,
-            "pinCode": data.pinCode
+        var classroomData = {
+            "name" : data.name,
+            "students" : {}
         }
-        await firestore.collection('classrooms').doc().set(classroom);
+        await firestore.collection('classrooms').doc().set(classroomData);
         res.send('Record saved successfuly');
+    } catch (error) {
+        res.status(400).send(error.message);
+    }
+}
+
+const generatePinCode = async (req, res, next) => {
+    try {
+        const id = req.params.classroomId;
+        const allClassroom = firestore.collection('classrooms');
+        var pinCode = Math.floor(Math.random() * (9 * (Math.pow(10, 4)))) + (Math.pow(10, 4));
+        const classroomById = await allClassroom.doc(id)
+        var data = {'pinCode': pinCode}
+        await classroomById.update(data);
+        console.log(pinCode);
+        res.status(200).json(data);
+    } catch (error) {
+        res.status(400).send(error.message);
+    }
+}
+
+const deletePinCode = async (req, res, next) => {
+    try {
+        const id = req.params.classroomId;
+        const allClassroom = firestore.collection('classrooms');
+        const classroomById = await allClassroom.doc(id)
+        var getClass = await classroomById.get()
+        var classroom = getClass.data()
+        delete classroom['pinCode'];
+        console.log(classroom);
+        await classroomById.set(classroom);
+        res.send('PinCode deleted!');
     } catch (error) {
         res.status(400).send(error.message);
     }
@@ -61,31 +92,7 @@ const joinClassroom = async (req, res, next) => {
                 "id": id,
                 "firstName": dataStudent.age
             };
-            console.log(size);
-            //   var body = {'0' : { 'id' :'dadadawdawda'}}
-            //  var z = classroom.students[body]
-            //  var y = Object.assign(body,classroom.students)
-            // var x = classroom.students.push({'0' : { 'id' :'dadadawdawda'}} )
-            //  console.log(y);
-            // const studentById = await firestore.collection('students').doc(id);
-            // const dataStudentById = await studentById.get();
-            // console.log(dataStudentById)
-            // const dataStudent = dataStudentById.data()
-            // console.log(dataStudent)
-            // const allStudentInClass = !classroomData.students ? "" : classroomData.students
-            // console.log(allStudentInClass)
-            //   var std = {classroomData.students,dataStudentx}
-            //    let y = allStudentInClass.push(id)
-            // const std = {
-            //     "students": {
-            //         "1": {
-            //             "id": id,
-            //             "firstName": dataStudent.firstName
-            //         }
-            //     }
-            // }
-            // let body = req.body
-            // console.log(allStudentInClass)
+        
             await classroomById.update(classroom);
             res.send('Student record updated successfuly');
         }
@@ -103,20 +110,22 @@ const leftClassroom = async (req, res, next) => {
         const classroomById = await allClassroom.doc(id)
         var getClass = await classroomById.get()
         var classroom = getClass.data()
-        // classroom.students[studentId] = null
-        // const res = await classroomById.update({
-        //     students: FieldValue.delete()
-        // });
-        // var jobskill_query = firestore.collection('classrooms').where('name', '==', 'Math');
-        // jobskill_query.get().then(function (querySnapshot) {
-        //     querySnapshot.forEach(function (doc) {
-        //         doc.ref.delete();
-        //     });
-        // });
-        classroom.students[studentId] = null;
-        await classroomById.update(classroom);
+        delete classroom.students[studentId];
+        // classroom.students[studentId] = null;
+        await classroomById.set(classroom);
         res.send('Student left classroom successfuly');
 
+
+    } catch (error) {
+        res.status(400).send(error.message);
+    }
+}
+
+const deleteClassroom = async (req, res, next) => {
+    try {
+        const id = req.params.id;
+        await firestore.collection('classrooms').doc(id).delete();
+        res.send('Classroom record deleted successfuly');
     } catch (error) {
         res.status(400).send(error.message);
     }
@@ -126,5 +135,8 @@ module.exports = {
     addClassroom,
     getClassroomByPinCode,
     joinClassroom,
-    leftClassroom
+    leftClassroom,
+    generatePinCode,
+    deletePinCode,
+    deleteClassroom
 }
