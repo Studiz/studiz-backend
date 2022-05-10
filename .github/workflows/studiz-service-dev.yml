@@ -23,4 +23,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/int222/backend:dev
+          tags: ghcr.io/studiz/studiz-backend:dev
