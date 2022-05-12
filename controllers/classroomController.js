@@ -8,7 +8,8 @@ const addClassroom = async (req, res, next) => {
     try {
         const data = req.body;
         var classroomData = {
-            "name" : data.name,
+            "displayName" : !data.displayName ? null : data.displayName,
+            "teachers" : {},
             "students" : {}
         }
         await firestore.collection('classrooms').doc().set(classroomData);
@@ -22,7 +23,7 @@ const generatePinCode = async (req, res, next) => {
     try {
         const id = req.params.classroomId;
         const allClassroom = firestore.collection('classrooms');
-        var pinCode = Math.floor(Math.random() * (9 * (Math.pow(10, 4)))) + (Math.pow(10, 4));
+        var pinCode = Math.floor(100000 + Math.random() * 900000)
         const classroomById = await allClassroom.doc(id)
         var data = {'pinCode': pinCode}
         await classroomById.update(data);
@@ -32,6 +33,7 @@ const generatePinCode = async (req, res, next) => {
         res.status(400).send(error.message);
     }
 }
+
 
 const deletePinCode = async (req, res, next) => {
     try {
@@ -88,11 +90,21 @@ const joinClassroom = async (req, res, next) => {
             const studentById = await firestore.collection('students').doc(id);
             const dataStudentById = await studentById.get();
             var dataStudent = dataStudentById.data()
+            console.log(dataStudent);
+            dataStudent.classrooms[classIdFromPinCode] =   {
+                "id" : classIdFromPinCode,
+                "name" : classroom.name,
+                "description" : classroom.description
+            }
             classroom.students[id] = {
                 "id": id,
-                "firstName": dataStudent.age
-            };
-        
+                // "firstName" : dataStudent.firstName,
+                // "lastName" : dataStudent.lastName,
+                // "age" : dataStudent.age,
+                "displayName" : dataStudent.displayName,
+                "userName" : dataStudent.userName
+            }
+            await studentById.update(dataStudent)
             await classroomById.update(classroom);
             res.send('Student record updated successfuly');
         }
