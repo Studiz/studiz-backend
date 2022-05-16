@@ -41,4 +41,4 @@ jobs:
             docker rmi -f ghcr.io/studiz/studiz-backend:dev
             docker pull ghcr.io/studiz/studiz-backend:dev
             docker rm -f studiz-backend
-            docker run --name studiz-backend ghcr.io/studiz/studiz-backend:dev -d
+            docker run --name studiz-backend ghcr.io/studiz/studiz-backend:dev 
