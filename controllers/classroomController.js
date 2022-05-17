@@ -7,13 +7,18 @@ const firestore = firebase.firestore();
 const addClassroom = async (req, res, next) => {
     try {
         const data = req.body;
+        const teacherById = await firestore.collection('teachers').doc(data.teacherId);
+        const dataTeacherById = await teacherById.get();
+        var dataTeacher = dataTeacherById.data()
+        if(dataTeacher.role == "TEACHER"){
         var classroomData = {
             "displayName" : !data.displayName ? null : data.displayName,
-            "teachers" : {},
+            "teacher" : dataTeacher,
             "students" : {}
         }
         await firestore.collection('classrooms').doc().set(classroomData);
         res.send('Record saved successfuly');
+    }else res.send('Only teacher can create classroom');
     } catch (error) {
         res.status(400).send(error.message);
     }
