@@ -73,6 +73,25 @@ const getClassroomByPinCode = async (req, res, next) => {
     }
 }
 
+const getStudentByClassroomId = async (req, res, next) => {
+    try {
+        const id = req.params.classroomId;
+        const allClassroom = firestore.collection('classrooms');
+        const classroomById = await allClassroom.doc(id)
+        const getClass = await classroomById.get()
+        const classroom = getClass.data()
+        if (!id) {
+            res.status(404).send('ClassroomId not found');
+        }if (!classroom){
+            res.status(404).send('Classroom not found');
+        } else {
+            res.send(classroom.students);
+        }
+    } catch (error) {
+        res.status(400).send(error.message);
+    }
+}
+
 const joinClassroom = async (req, res, next) => {
     try {
         const allClassroom = firestore.collection('classrooms');
@@ -155,5 +174,6 @@ module.exports = {
     leftClassroom,
     generatePinCode,
     deletePinCode,
-    deleteClassroom
+    deleteClassroom,
+    getStudentByClassroomId
 }
