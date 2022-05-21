@@ -2,15 +2,26 @@
 
 const firebase = require('../db');
 const Student = require('../models/student');
+const express = require('express');
+const cors = require('cors');
+const middleware = require('../middleware');
+
+const app = express();
+
+app.use(cors());
+
+app.use(middleware.decodeToken);
 const firestore = firebase.firestore();
 
 
 const addStudent = async (req, res, next) => {
     try {
-        const data = req.body;
+        console.log(req.user);
+        const data = req.user;
         var studentData = {
             data,
-            "classrooms" : {}
+            "classrooms" : {},
+            "role" : "STUDENT"
         }
         await firestore.collection('students').doc().set(studentData);
         res.send('Record saved successfuly');
