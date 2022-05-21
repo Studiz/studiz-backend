@@ -5,8 +5,7 @@ class Middleware {
 		try {
 			const decodeValue = await admin.auth().verifyIdToken(token);
 			if (decodeValue) {
-				req.user = decodeValue;
-				return next();
+				return decodeValue;
 			}
 			return res.json({ message: 'Un authorize' });
 		} catch (e) {

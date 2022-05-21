@@ -8,7 +8,7 @@ const {addStudent,
 
 const router = express.Router();
 
-router.post('/student', addStudent);
+router.post('/student/signup', addStudent);
 router.get('/students', getAllStudents);
 router.get('/student/:id', getStudent);
 router.put('/student/:id', updateStudent);

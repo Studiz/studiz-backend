@@ -16,8 +16,7 @@ const firestore = firebase.firestore();
 
 const addStudent = async (req, res, next) => {
     try {
-        console.log(req.user);
-        const data = req.user;
+        const data = await middleware.decodeToken(req, res, next);
         var studentData = {
             data,
             "classrooms" : {},
