@@ -17,23 +17,19 @@ const signUpStudenWithEmail = async (req, res, next) => {
             "lastName": decodeToken.lname,
             "classrooms": {},
             "role": "STUDENT",
-            "uid":""
+            "uid": ""
         }
         firebase.auth().createUserWithEmailAndPassword(decodeToken.email, decodeToken.password)
             .then(res => {
-                studentData.uid = res.uid
+                studentData.uid = res.user.uid
+                firestore.collection('students').doc().set(studentData);
                 res.send('Record saved successfuly')
             })
             .catch(error => {
                 res.send(error)
             });
+
         // console.log(await getAllStudents())
-        
-
-        await firestore.collection('students').doc().set(studentData);
-
-
-
     } catch (error) {
         res.status(400).send(error.message);
     }
