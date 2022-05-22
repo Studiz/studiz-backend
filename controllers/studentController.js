@@ -12,23 +12,22 @@ const signUpStudenWithEmail = async (req, res, next) => {
     try {
         var decodeToken = jwtDecode(req.headers.token);
         firebase.auth().createUserWithEmailAndPassword(decodeToken.email, decodeToken.password)
-            .then(user => 
+            .then(user =>
                 res.send('Record saved successfuly')
             )
-            .catch(error => 
+            .catch(error =>
                 res.send('email-already-in-use'),
-                );
-                // console.log(await getAllStudents())
-            var studentData = {
-                "email" : decodeToken.email,
-                "firstName" : decodeToken.fname,
-                "lastName" : decodeToken.lname,
-                "classrooms": {},
-                "role": "STUDENT"
-            }
-            if(!duplicateEmail){
-            await firestore.collection('students').doc().set(studentData);
-            }
+            );
+        // console.log(await getAllStudents())
+        var studentData = {
+            "email": decodeToken.email,
+            "firstName": decodeToken.fname,
+            "lastName": decodeToken.lname,
+            "classrooms": {},
+            "role": "STUDENT"
+        }
+        await firestore.collection('students').doc().set(studentData);
+
     } catch (error) {
         res.status(400).send(error.message);
     }
