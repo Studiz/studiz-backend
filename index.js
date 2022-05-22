@@ -6,6 +6,7 @@ const config = require('./config/config');
 const studentRoutes = require('./routes/student-routes');
 const classroomRoutes = require('./routes/classroom-routes');
 const teacherRoutes = require('./routes/teacher-routes');
+const userRoutes = require('./routes/user-routes');
 
 const app = express();
 
@@ -16,6 +17,6 @@ app.use(bodyParser.json());
 app.use('/api', studentRoutes.routes);
 app.use('/api', classroomRoutes.routes);
 app.use('/api', teacherRoutes.routes);
-
+app.use('/api', userRoutes.routes);
 
 app.listen(config.port, () => console.log('App is listening on port ' + config.port));

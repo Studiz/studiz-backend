@@ -10,15 +10,7 @@ const jwtDecode = require('jwt-decode');
 
 const signUpStudenWithEmail = async (req, res, next) => {
     try {
-        var decodeToken = jwtDecode(req.headers.token)
-        const students = await firestore.collection('students');
-        const data = await students.get();
-        var duplicateEmail = false
-        data.forEach(doc => {
-            if(doc.data().email == decodeToken.email) {
-                duplicateEmail = true
-            }
-        });
+        var decodeToken = jwtDecode(req.headers.token);
         firebase.auth().createUserWithEmailAndPassword(decodeToken.email, decodeToken.password)
             .then(user => 
                 res.send('Record saved successfuly')
