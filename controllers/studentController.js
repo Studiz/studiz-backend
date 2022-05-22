@@ -11,22 +11,28 @@ const jwtDecode = require('jwt-decode');
 const signUpStudenWithEmail = async (req, res, next) => {
     try {
         var decodeToken = jwtDecode(req.headers.token);
-        firebase.auth().createUserWithEmailAndPassword(decodeToken.email, decodeToken.password)
-            .then(user =>
-                res.send('Record saved successfuly')
-            )
-            .catch(error =>
-                res.send('email-already-in-use'),
-            );
-        // console.log(await getAllStudents())
         var studentData = {
             "email": decodeToken.email,
             "firstName": decodeToken.fname,
             "lastName": decodeToken.lname,
             "classrooms": {},
-            "role": "STUDENT"
+            "role": "STUDENT",
+            "uid":""
         }
+        firebase.auth().createUserWithEmailAndPassword(decodeToken.email, decodeToken.password)
+            .then(res => {
+                studentData.uid = res.uid
+                res.send('Record saved successfuly')
+            })
+            .catch(error => {
+                res.send(error)
+            });
+        // console.log(await getAllStudents())
+        
+
         await firestore.collection('students').doc().set(studentData);
+
+
 
     } catch (error) {
         res.status(400).send(error.message);
