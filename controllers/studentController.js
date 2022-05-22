@@ -2,28 +2,41 @@
 
 const firebase = require('../db');
 const Student = require('../models/student');
-const express = require('express');
-const cors = require('cors');
+// const express = require('express');
+// const cors = require('cors');
 const middleware = require('../middleware');
-
-const app = express();
-
-app.use(cors());
-
-app.use(middleware.decodeToken);
 const firestore = firebase.firestore();
+const jwtDecode = require('jwt-decode');
 
-
-const addStudent = async (req, res, next) => {
+const signUpStudenWithEmail = async (req, res, next) => {
     try {
-        const data = await middleware.decodeToken(req, res, next);
-        var studentData = {
-            data,
-            "classrooms" : {},
-            "role" : "STUDENT"
-        }
-        await firestore.collection('students').doc().set(studentData);
-        res.send('Record saved successfuly');
+        var decodeToken = jwtDecode(req.headers.token)
+        const students = await firestore.collection('students');
+        const data = await students.get();
+        var duplicateEmail = false
+        data.forEach(doc => {
+            if(doc.data().email == decodeToken.email) {
+                duplicateEmail = true
+            }
+        });
+        firebase.auth().createUserWithEmailAndPassword(decodeToken.email, decodeToken.password)
+            .then(user => 
+                res.send('Record saved successfuly')
+            )
+            .catch(error => 
+                res.send('email-already-in-use'),
+                );
+                // console.log(await getAllStudents())
+            var studentData = {
+                "email" : decodeToken.email,
+                "firstName" : decodeToken.fname,
+                "lastName" : decodeToken.lname,
+                "classrooms": {},
+                "role": "STUDENT"
+            }
+            if(!duplicateEmail){
+            await firestore.collection('students').doc().set(studentData);
+            }
     } catch (error) {
         res.status(400).send(error.message);
     }
@@ -34,9 +47,9 @@ const getAllStudents = async (req, res, next) => {
         const students = await firestore.collection('students');
         const data = await students.get();
         const studentsArray = [];
-        if(data.empty) {
+        if (data.empty) {
             res.status(404).send('No student record found');
-        }else {
+        } else {
             data.forEach(doc => {
                 const student = new Student(
                     doc.id,
@@ -62,9 +75,9 @@ const getStudent = async (req, res, next) => {
         const id = req.params.id;
         const student = await firestore.collection('students').doc(id);
         const data = await student.get();
-        if(!data.exists) {
+        if (!data.exists) {
             res.status(404).send('Student with the given ID not found');
-        }else {
+        } else {
             res.send(data.data());
         }
     } catch (error) {
@@ -76,9 +89,9 @@ const updateStudent = async (req, res, next) => {
     try {
         const id = req.params.id;
         const data = req.body;
-        const student =  await firestore.collection('students').doc(id);
+        const student = await firestore.collection('students').doc(id);
         await student.update(data);
-        res.send('Student record updated successfuly');        
+        res.send('Student record updated successfuly');
     } catch (error) {
         res.status(400).send(error.message);
     }
@@ -97,7 +110,7 @@ const deleteStudent = async (req, res, next) => {
 
 
 module.exports = {
-    addStudent,
+    signUpStudenWithEmail,
     getAllStudents,
     getStudent,
     updateStudent,

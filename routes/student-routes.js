@@ -1,5 +1,5 @@
 const express = require('express');
-const {addStudent, 
+const {signUpStudenWithEmail, 
        getAllStudents, 
        getStudent,
        updateStudent,
@@ -8,10 +8,10 @@ const {addStudent,
 
 const router = express.Router();
 
-router.post('/student/signup', addStudent);
+router.post('/student/signup/withEmail', signUpStudenWithEmail);
 router.get('/students', getAllStudents);
 router.get('/student/:id', getStudent);
-router.put('/student/:id', updateStudent);
+router.put('/update/student/:id', updateStudent);
 router.delete('/student/:id', deleteStudent);
 
 

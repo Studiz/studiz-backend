@@ -3,6 +3,7 @@
 const firebase = require('../db');
 const Classroom = require('../models/classroom');
 const firestore = firebase.firestore();
+const middleware = require('../middleware');
 
 const addClassroom = async (req, res, next) => {
     try {
@@ -167,6 +168,21 @@ const deleteClassroom = async (req, res, next) => {
     }
 }
 
+const updateClassroom = async (req, res, next) => {
+    try {
+        const decodeToken = await middleware.decodeToken(req, res, next);
+        if(decodeToken) {
+        const id = req.params.id;
+        const data = req.body;
+        const classroom =  await firestore.collection('classrooms').doc(id);
+        await classroom.update(data);
+        res.send('Classroom record updated successfuly');     
+        }else res.send('Un authorize');  
+    } catch (error) {
+        res.status(400).send(error.message);
+    }
+}
+
 module.exports = {
     addClassroom,
     getClassroomByPinCode,
@@ -175,5 +191,6 @@ module.exports = {
     generatePinCode,
     deletePinCode,
     deleteClassroom,
-    getStudentByClassroomId
+    getStudentByClassroomId,
+    updateClassroom
 }
