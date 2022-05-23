@@ -15,6 +15,8 @@ const signUpStudenWithEmail = async (req, res, next) => {
             "email": decodeToken.email,
             "firstName": decodeToken.fname,
             "lastName": decodeToken.lname,
+            "displayName": "",
+            "imageUrl": "",
             "classrooms": {},
             "role": "STUDENT",
             "uid": ""
@@ -30,6 +32,25 @@ const signUpStudenWithEmail = async (req, res, next) => {
             });
 
         // console.log(await getAllStudents())
+    } catch (error) {
+        res.status(400).send(error.message);
+    }
+}
+
+const signUpStudenWithGoogle = async (req, res, next) => {
+    try {
+        var decodeToken = jwtDecode(req.headers.token);
+        var studentData = {
+            "email": decodeToken.email,
+            "firstName": decodeToken.fname,
+            "lastName": decodeToken.lname,
+            "displayName": "",
+            "imageUrl": decodeToken.imageUrl,
+            "classrooms": {},
+            "role": "STUDENT",
+            "uid": decodeToken.uid
+        }
+        firestore.collection('students').doc().set(studentData);
     } catch (error) {
         res.status(400).send(error.message);
     }
@@ -62,6 +83,8 @@ const getAllStudents = async (req, res, next) => {
         res.status(400).send(error.message);
     }
 }
+
+
 
 const getStudent = async (req, res, next) => {
     try {
@@ -104,6 +127,7 @@ const deleteStudent = async (req, res, next) => {
 
 module.exports = {
     signUpStudenWithEmail,
+    signUpStudenWithGoogle,
     getAllStudents,
     getStudent,
     updateStudent,

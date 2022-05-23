@@ -1,14 +1,17 @@
 const express = require('express');
-const {signUpStudenWithEmail, 
-       getAllStudents, 
-       getStudent,
-       updateStudent,
-       deleteStudent
-      } = require('../controllers/studentController');
+const {
+    signUpStudenWithEmail,
+    signUpStudenWithGoogle,
+    getAllStudents,
+    getStudent,
+    updateStudent,
+    deleteStudent,
+} = require('../controllers/studentController');
 
 const router = express.Router();
 
 router.post('/student/signup/withEmail', signUpStudenWithEmail);
+router.post('/student/signup/withGoogle', signUpStudenWithGoogle);
 router.get('/students', getAllStudents);
 router.get('/student/:id', getStudent);
 router.put('/update/student/:id', updateStudent);
