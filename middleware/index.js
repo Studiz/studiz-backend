@@ -1,5 +1,4 @@
 const admin = require('../config/firebase-config');
-const jwtDecode = require('jwt-decode');
 
 const {
 	OAuth2Client

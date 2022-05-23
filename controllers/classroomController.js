@@ -119,7 +119,8 @@ const joinClassroom = async (req, res, next) => {
             dataStudent.classrooms[classIdFromPinCode] =   {
                 "id" : classIdFromPinCode,
                 "name" : classroom.name,
-                "description" : classroom.description
+                "description" : classroom.description,
+                "color" : classroom.color
             }
             classroom.students[id] = {
                 "id": id,
