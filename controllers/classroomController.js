@@ -13,6 +13,7 @@ const createClassroom = async (req, res, next) => {
         var dataTeacher = dataTeacherById.data()
         var classrooms = dataTeacherById.data().classrooms
         delete dataTeacher.classrooms
+        var id;
         if (dataTeacher.role == "TEACHER") {
             var classroomData = {
                 "color": data.color,
@@ -20,11 +21,12 @@ const createClassroom = async (req, res, next) => {
                 "teacher": dataTeacher,
                 "description": data.description,
                 "relevantSubjects": data.relevantSubjects,
-                "students": []
+                "students": {}
             }
             // await firestore.collection('classrooms').doc().set(classroomData)
             await firestore.collection('classrooms').add(classroomData).then((res) => {
                 classroomData.id = res.id
+                id = res.id
                 delete classroomData.students
                 delete classroomData.teacher
                 console.log(classrooms);
@@ -34,7 +36,11 @@ const createClassroom = async (req, res, next) => {
                     merge: true
                 })
             })
-            res.send('Record saved successfuly');
+            // console.log(id);
+            res.status(200).json({
+                "id" : id
+            }
+                );
         } else res.send('Only teacher can create classroom');
     } catch (error) {
         res.status(400).send(error.message);
@@ -115,7 +121,9 @@ const getStudentByClassroomId = async (req, res, next) => {
 const joinClassroom = async (req, res, next) => {
     try {
         const allClassroom = firestore.collection('classrooms');
-        const snapshot = await allClassroom.where('pinCode', '==', req.params.pinCode).get();
+        console.log(req.params.pinCode);
+        const snapshot = await allClassroom.where('pinCode', '==', Number(req.params.pinCode)).get();
+        // console.log(snapshot);
         var classIdFromPinCode
         var classroomData
         if (snapshot.empty) {
@@ -134,7 +142,7 @@ const joinClassroom = async (req, res, next) => {
             const studentById = await firestore.collection('students').doc(id);
             const dataStudentById = await studentById.get();
             var dataStudent = dataStudentById.data()
-            console.log(dataStudent);
+            console.log(classroom);
             dataStudent.classrooms[classIdFromPinCode] = {
                 "id": classIdFromPinCode,
                 "name": classroom.name,
@@ -147,7 +155,7 @@ const joinClassroom = async (req, res, next) => {
                 // "lastName" : dataStudent.lastName,
                 // "age" : dataStudent.age,
                 "displayName": dataStudent.displayName,
-                "userName": dataStudent.userName
+                "email": dataStudent.email
             }
             await studentById.update(dataStudent)
             await classroomById.update(classroom);
