@@ -5,21 +5,33 @@ const Classroom = require('../models/classroom');
 const firestore = firebase.firestore();
 const middleware = require('../middleware');
 
-const addClassroom = async (req, res, next) => {
+const createClassroom = async (req, res, next) => {
     try {
         const data = req.body;
         const teacherById = await firestore.collection('teachers').doc(data.teacherId);
         const dataTeacherById = await teacherById.get();
         var dataTeacher = dataTeacherById.data()
-        if(dataTeacher.role == "TEACHER"){
-        var classroomData = {
-            "displayName" : !data.displayName ? null : data.displayName,
-            "teacher" : dataTeacher,
-            "students" : {}
+        dataTeacher = dataTeacher = {
+            "displayName": dataTeacher.displayName,
+            "email": dataTeacher.email,
+            "firstName": dataTeacher.firstName,
+            "lastName": dataTeacher.lastName,
+            "imageUrl": dataTeacher.imageUrl,
+            "lastName": dataTeacher.lastName,
+            "role": dataTeacher.role,
         }
-        await firestore.collection('classrooms').doc().set(classroomData);
-        res.send('Record saved successfuly');
-    }else res.send('Only teacher can create classroom');
+        if (dataTeacher.role == "TEACHER") {
+            var classroomData = {
+                "color": data.color,
+                "name": data.name,
+                "teacher": dataTeacher,
+                "description": data.description,
+                "relevantSubjects": data.relevantSubjects,
+                "students": []
+            }
+            await firestore.collection('classrooms').doc().set(classroomData);
+            res.send('Record saved successfuly');
+        } else res.send('Only teacher can create classroom');
     } catch (error) {
         res.status(400).send(error.message);
     }
@@ -31,7 +43,9 @@ const generatePinCode = async (req, res, next) => {
         const allClassroom = firestore.collection('classrooms');
         var pinCode = Math.floor(100000 + Math.random() * 900000)
         const classroomById = await allClassroom.doc(id)
-        var data = {'pinCode': pinCode}
+        var data = {
+            'pinCode': pinCode
+        }
         await classroomById.update(data);
         console.log(pinCode);
         res.status(200).json(data);
@@ -83,7 +97,8 @@ const getStudentByClassroomId = async (req, res, next) => {
         const classroom = getClass.data()
         if (!id) {
             res.status(404).send('ClassroomId not found');
-        }if (!classroom){
+        }
+        if (!classroom) {
             res.status(404).send('Classroom not found');
         } else {
             res.send(classroom.students);
@@ -116,19 +131,19 @@ const joinClassroom = async (req, res, next) => {
             const dataStudentById = await studentById.get();
             var dataStudent = dataStudentById.data()
             console.log(dataStudent);
-            dataStudent.classrooms[classIdFromPinCode] =   {
-                "id" : classIdFromPinCode,
-                "name" : classroom.name,
-                "description" : classroom.description,
-                "color" : classroom.color
+            dataStudent.classrooms[classIdFromPinCode] = {
+                "id": classIdFromPinCode,
+                "name": classroom.name,
+                "description": classroom.description,
+                "color": classroom.color
             }
             classroom.students[id] = {
                 "id": id,
                 // "firstName" : dataStudent.firstName,
                 // "lastName" : dataStudent.lastName,
                 // "age" : dataStudent.age,
-                "displayName" : dataStudent.displayName,
-                "userName" : dataStudent.userName
+                "displayName": dataStudent.displayName,
+                "userName": dataStudent.userName
             }
             await studentById.update(dataStudent)
             await classroomById.update(classroom);
@@ -172,20 +187,20 @@ const deleteClassroom = async (req, res, next) => {
 const updateClassroom = async (req, res, next) => {
     try {
         const decodeToken = await middleware.decodeToken(req, res, next);
-        if(decodeToken) {
-        const id = req.params.id;
-        const data = req.body;
-        const classroom =  await firestore.collection('classrooms').doc(id);
-        await classroom.update(data);
-        res.send('Classroom record updated successfuly');     
-        }else res.send('Un authorize');  
+        if (decodeToken) {
+            const id = req.params.id;
+            const data = req.body;
+            const classroom = await firestore.collection('classrooms').doc(id);
+            await classroom.update(data);
+            res.send('Classroom record updated successfuly');
+        } else res.send('Un authorize');
     } catch (error) {
         res.status(400).send(error.message);
     }
 }
 
 module.exports = {
-    addClassroom,
+    createClassroom,
     getClassroomByPinCode,
     joinClassroom,
     leftClassroom,

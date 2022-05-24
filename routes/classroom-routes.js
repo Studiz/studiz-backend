@@ -1,10 +1,10 @@
 const express = require('express');
-const {addClassroom, getClassroomByPinCode, joinClassroom, leftClassroom, generatePinCode, deletePinCode, deleteClassroom, getStudentByClassroomId, updateClassroom
+const {createClassroom, getClassroomByPinCode, joinClassroom, leftClassroom, generatePinCode, deletePinCode, deleteClassroom, getStudentByClassroomId, updateClassroom
       } = require('../controllers/classroomController');
 
 const router = express.Router();
 
-router.post('/create/classroom', addClassroom);
+router.post('/create/classroom', createClassroom);
 router.get('/classroom/pincode/:pinCode', getClassroomByPinCode);
 router.get('/students/classroom/:classroomId', getStudentByClassroomId);
 router.put('/join/classroom/:pinCode/:studentId', joinClassroom);
