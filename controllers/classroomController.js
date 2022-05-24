@@ -11,15 +11,8 @@ const createClassroom = async (req, res, next) => {
         const teacherById = await firestore.collection('teachers').doc(data.teacherId);
         const dataTeacherById = await teacherById.get();
         var dataTeacher = dataTeacherById.data()
-        dataTeacher = dataTeacher = {
-            "displayName": dataTeacher.displayName,
-            "email": dataTeacher.email,
-            "firstName": dataTeacher.firstName,
-            "lastName": dataTeacher.lastName,
-            "imageUrl": dataTeacher.imageUrl,
-            "lastName": dataTeacher.lastName,
-            "role": dataTeacher.role,
-        }
+        var classrooms = dataTeacherById.data().classrooms
+        delete dataTeacher.classrooms
         if (dataTeacher.role == "TEACHER") {
             var classroomData = {
                 "color": data.color,
@@ -29,7 +22,18 @@ const createClassroom = async (req, res, next) => {
                 "relevantSubjects": data.relevantSubjects,
                 "students": []
             }
-            await firestore.collection('classrooms').doc().set(classroomData);
+            // await firestore.collection('classrooms').doc().set(classroomData)
+            await firestore.collection('classrooms').add(classroomData).then((res) => {
+                classroomData.id = res.id
+                delete classroomData.students
+                delete classroomData.teacher
+                console.log(classrooms);
+                teacherById.set({
+                    classrooms: [...classrooms, classroomData],
+                }, {
+                    merge: true
+                })
+            })
             res.send('Record saved successfuly');
         } else res.send('Only teacher can create classroom');
     } catch (error) {
