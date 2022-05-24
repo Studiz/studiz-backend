@@ -41,19 +41,22 @@ const signInUser = async (req, res, next) => {
 
                 if (!studentByUid.empty) {
                     studentByUid.forEach(doc => {
-                        return  res.json({
-                            id : doc.id,
-                            data : doc.data()
+                        return res.json({
+                            id: doc.id,
+                            data: doc.data()
                         });
                     });
-                
-                } else if (!teacherByUid.empty){
+
+                } else if (!teacherByUid.empty) {
                     teacherByUid.forEach(doc => {
-                        console.log(doc.id, '=>', doc.data());
-                        res.send(doc.data());
+                        return res.json({
+                            id: doc.id,
+                            data: doc.data()
+                        });
+
                     });
                 } else res.send("Cannot find data");
-            //     console.log(decodeValue.uid);
+                //     console.log(decodeValue.uid);
             } else return res.json({
                 message: 'Un authorize'
             });
