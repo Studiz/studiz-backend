@@ -17,7 +17,7 @@ const signUpStudenWithEmail = async (req, res, next) => {
             "lastName": decodeToken.lname,
             "displayName": "",
             "imageUrl": "",
-            "classrooms": {},
+            "classrooms": [],
             "role": "STUDENT",
             "uid": ""
         }

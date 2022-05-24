@@ -21,7 +21,7 @@ const createClassroom = async (req, res, next) => {
                 "teacher": dataTeacher,
                 "description": data.description,
                 "relevantSubjects": data.relevantSubjects,
-                "students": {}
+                "students": []
             }
             // await firestore.collection('classrooms').doc().set(classroomData)
             await firestore.collection('classrooms').add(classroomData).then((res) => {
@@ -38,9 +38,8 @@ const createClassroom = async (req, res, next) => {
             })
             // console.log(id);
             res.status(200).json({
-                "id" : id
-            }
-                );
+                "id": id
+            });
         } else res.send('Only teacher can create classroom');
     } catch (error) {
         res.status(400).send(error.message);
@@ -143,22 +142,41 @@ const joinClassroom = async (req, res, next) => {
             const dataStudentById = await studentById.get();
             var dataStudent = dataStudentById.data()
             console.log(classroom);
-            dataStudent.classrooms[classIdFromPinCode] = {
+            var json1 = {
                 "id": classIdFromPinCode,
                 "name": classroom.name,
                 "description": classroom.description,
-                "color": classroom.color
+                "color": classroom.color,
+                "teacher": {
+                    "firstName": classroom.teacher.firstName,
+                    "lastName": classroom.teacher.lastName,
+                    "email": classroom.teacher.email,
+                    "imageUrl": classroom.teacher.imageUrl,
+                    "displayName": classroom.teacher.displayName
+                }
             }
-            classroom.students[id] = {
+            var json2 = {
                 "id": id,
-                // "firstName" : dataStudent.firstName,
-                // "lastName" : dataStudent.lastName,
-                // "age" : dataStudent.age,
+                "firstName": dataStudent.firstName,
+                "lastName": dataStudent.lastName,
                 "displayName": dataStudent.displayName,
-                "email": dataStudent.email
+                "email": dataStudent.email,
+                "uid": dataStudent.uid,
+                "imageUrl": dataStudent.imageUrl
             }
-            await studentById.update(dataStudent)
-            await classroomById.update(classroom);
+            classroomById.set({
+                students: [...classroom.students, json2],
+            }, {
+                merge: true
+            })
+
+            studentById.set({
+                classrooms: [...dataStudent.classrooms, json1],
+            }, {
+                merge: true
+            })
+            // await studentById.update(dataStudent)
+            // await classroomById.update(classroom);
             res.send('Student record updated successfuly');
         }
 
@@ -216,9 +234,9 @@ const getClassroomById = async (req, res, next) => {
         const id = req.params.id;
         const classroom = await firestore.collection('classrooms').doc(id);
         const data = await classroom.get();
-        if(!data.exists) {
+        if (!data.exists) {
             res.status(404).send('Classroom with the given ID not found');
-        }else {
+        } else {
             res.send(data.data());
         }
     } catch (error) {

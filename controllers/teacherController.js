@@ -10,7 +10,7 @@ const addTeacher = async (req, res, next) => {
         const data = await middleware.decodeToken(req, res, next);
         var teacherData = {
             data,
-            "classrooms" : {}
+            "classrooms" : []
         }
         await firestore.collection('teachers').doc().set(teacherData);
         res.send('Record saved successfuly');
