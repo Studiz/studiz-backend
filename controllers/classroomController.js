@@ -130,7 +130,7 @@ const joinClassroom = async (req, res, next) => {
             const classroomById = await allClassroom.doc(classIdFromPinCode)
             var getClass = await classroomById.get()
             var classroom = getClass.data()
-            var size = Object.keys(classroom.students).length + 1;
+            // var size = Object.keys(classroom.students).length + 1;
             const studentById = await firestore.collection('students').doc(id);
             const dataStudentById = await studentById.get();
             var dataStudent = dataStudentById.data()
@@ -203,6 +203,21 @@ const updateClassroom = async (req, res, next) => {
     }
 }
 
+const getClassroomById = async (req, res, next) => {
+    try {
+        const id = req.params.id;
+        const classroom = await firestore.collection('classrooms').doc(id);
+        const data = await classroom.get();
+        if(!data.exists) {
+            res.status(404).send('Classroom with the given ID not found');
+        }else {
+            res.send(data.data());
+        }
+    } catch (error) {
+        res.status(400).send(error.message);
+    }
+}
+
 module.exports = {
     createClassroom,
     getClassroomByPinCode,
@@ -212,5 +227,6 @@ module.exports = {
     deletePinCode,
     deleteClassroom,
     getStudentByClassroomId,
-    updateClassroom
+    updateClassroom,
+    getClassroomById
 }

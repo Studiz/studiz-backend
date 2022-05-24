@@ -124,7 +124,6 @@ const deleteStudent = async (req, res, next) => {
 }
 
 
-
 module.exports = {
     signUpStudenWithEmail,
     signUpStudenWithGoogle,
