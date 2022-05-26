@@ -25,7 +25,7 @@ const signUpStudenWithEmail = async (req, res, next) => {
             .then(res => {
                 studentData.uid = res.user.uid
                 firestore.collection('students').doc().set(studentData);
-                res.send('Record saved successfuly')
+                res.send(studentData)
             })
             .catch(error => {
                 res.send(error)
@@ -51,6 +51,7 @@ const signUpStudenWithGoogle = async (req, res, next) => {
             "uid": decodeToken.uid
         }
         firestore.collection('students').doc().set(studentData);
+        res.send(studentData)
     } catch (error) {
         res.status(400).send(error.message);
     }
@@ -61,6 +62,7 @@ const getAllStudents = async (req, res, next) => {
         const students = await firestore.collection('students');
         const data = await students.get();
         const studentsArray = [];
+      
         if (data.empty) {
             res.status(404).send('No student record found');
         } else {
@@ -85,11 +87,10 @@ const getAllStudents = async (req, res, next) => {
 }
 
 
-
 const getStudent = async (req, res, next) => {
     try {
         const id = req.params.id;
-        const student = await firestore.collection('students').doc(id);
+        const student = await firestore.collection('Achievements').doc(id);
         const data = await student.get();
         if (!data.exists) {
             res.status(404).send('Student with the given ID not found');

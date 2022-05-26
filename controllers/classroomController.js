@@ -119,9 +119,11 @@ const getStudentByClassroomId = async (req, res, next) => {
 
 const joinClassroom = async (req, res, next) => {
     try {
+        const id = req.params.studentId;
         const allClassroom = firestore.collection('classrooms');
         console.log(req.params.pinCode);
         const snapshot = await allClassroom.where('pinCode', '==', Number(req.params.pinCode)).get();
+    
         // console.log(snapshot);
         var classIdFromPinCode
         var classroomData
@@ -129,11 +131,11 @@ const joinClassroom = async (req, res, next) => {
             res.status(404).send('Classroom with the given pinCode not found');
         } else {
             snapshot.forEach(doc => {
-                // console.log(doc.id, '=>', doc.data());
                 classIdFromPinCode = doc.id
-                classroomData = doc.data()
             });
-            const id = req.params.studentId;
+
+           
+            // const id = req.params.studentId;
             const classroomById = await allClassroom.doc(classIdFromPinCode)
             var getClass = await classroomById.get()
             var classroom = getClass.data()
@@ -141,7 +143,8 @@ const joinClassroom = async (req, res, next) => {
             const studentById = await firestore.collection('students').doc(id);
             const dataStudentById = await studentById.get();
             var dataStudent = dataStudentById.data()
-            console.log(classroom);
+            if(!checkDupplicateStudent(classroom.students,id)){
+            // console.log(classroom);
             var json1 = {
                 "id": classIdFromPinCode,
                 "name": classroom.name,
@@ -178,7 +181,8 @@ const joinClassroom = async (req, res, next) => {
             // await studentById.update(dataStudent)
             // await classroomById.update(classroom);
             res.send('Student record updated successfuly');
-        }
+        }else res.send('Student is alrady in classroom');
+    }
 
     } catch (error) {
         res.status(400).send(error.message);
@@ -242,6 +246,16 @@ const getClassroomById = async (req, res, next) => {
     } catch (error) {
         res.status(400).send(error.message);
     }
+}
+
+function checkDupplicateStudent(students,id){
+    var isDupplicate = false
+    students.forEach(data => {
+        if(data.id == id) {
+            isDupplicate = true;
+        }
+    })
+     return isDupplicate
 }
 
 module.exports = {
