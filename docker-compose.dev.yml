@@ -1,0 +1,17 @@
+version: "3"
+services:
+    frontend:
+        container_name: studiz-backend
+        build: .
+        image: ghcr.io/studiz/studiz-backend:dev
+        restart: on-failure
+    reverse-poxy:
+        image: nginx
+        container_name: reverse-poxy
+        volumes: 
+            - ./reverse-poxy.conf:/etc/nginx/nginx.conf
+            - ../../certificateFiles:/etc/nginx/certificateFiles
+        restart: on-failure
+        ports:
+            - "80:80"
+            - "443:443"
