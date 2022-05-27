@@ -22,15 +22,15 @@ const signUpStudenWithEmail = async (req, res, next) => {
             "uid": ""
         }
         firebase.auth().createUserWithEmailAndPassword(decodeToken.email, decodeToken.password)
-            .then(res => {
-                studentData.uid = res.user.uid
+            .then(response => {
+                let accessToken = response.user.b.b.g
+                studentData.uid = response.user.uid
                 firestore.collection('students').doc().set(studentData);
-                res.send(studentData)
+                res.send(accessToken);
             })
             .catch(error => {
                 res.send(error)
             });
-
         // console.log(await getAllStudents())
     } catch (error) {
         res.status(400).send(error.message);
@@ -62,7 +62,7 @@ const getAllStudents = async (req, res, next) => {
         const students = await firestore.collection('students');
         const data = await students.get();
         const studentsArray = [];
-      
+
         if (data.empty) {
             res.status(404).send('No student record found');
         } else {

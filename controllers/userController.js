@@ -55,15 +55,13 @@ const signInUser = async (req, res, next) => {
                         });
 
                     });
-                } else res.send("Cannot find data");
+                } else res.status(404).send("Cannot find data");
                 //     console.log(decodeValue.uid);
             } else return res.json({
                 message: 'Un authorize'
             });
         } catch (e) {
-            return res.json({
-                message: 'Token invalid'
-            });
+            res.status(401).send('Token invalid');
         }
 
     } catch (error) {
