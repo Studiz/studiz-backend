@@ -197,9 +197,13 @@ const leftClassroom = async (req, res, next) => {
         const classroomById = await allClassroom.doc(id)
         var getClass = await classroomById.get()
         var classroom = getClass.data()
-        delete classroom.students[studentId];
-        // classroom.students[studentId] = null;
-        await classroomById.set(classroom);
+        // delete classroom.students[studentId];
+        // await classroomById.set(classroom);
+        classroomById.set({
+            classrooms: [...classroom.students.filter(student => student.id !== studentId)],
+        }, {
+            merge: true
+        })
 
         // Delete classrooms in user profile
         const studentById = await firestore.collection('students').doc(studentId);
