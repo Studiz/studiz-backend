@@ -200,7 +200,7 @@ const leftClassroom = async (req, res, next) => {
         // delete classroom.students[studentId];
         // await classroomById.set(classroom);
         classroomById.set({
-            classrooms: [...classroom.students.filter(student => student.id !== studentId)],
+            students: [...classroom.students.filter(student => student.id !== studentId)],
         }, {
             merge: true
         })
