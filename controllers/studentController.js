@@ -46,7 +46,7 @@ const signUpStudenWithGoogle = async (req, res, next) => {
             "lastName": decodeToken.lname,
             "displayName": "",
             "imageUrl": decodeToken.imageUrl,
-            "classrooms": {},
+            "classrooms": [],
             "role": "STUDENT",
             "uid": decodeToken.uid
         }
