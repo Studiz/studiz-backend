@@ -123,7 +123,7 @@ const joinClassroom = async (req, res, next) => {
         const allClassroom = firestore.collection('classrooms');
         console.log(req.params.pinCode);
         const snapshot = await allClassroom.where('pinCode', '==', Number(req.params.pinCode)).get();
-    
+
         // console.log(snapshot);
         var classIdFromPinCode
         var classroomData
@@ -134,7 +134,7 @@ const joinClassroom = async (req, res, next) => {
                 classIdFromPinCode = doc.id
             });
 
-           
+
             // const id = req.params.studentId;
             const classroomById = await allClassroom.doc(classIdFromPinCode)
             var getClass = await classroomById.get()
@@ -143,46 +143,46 @@ const joinClassroom = async (req, res, next) => {
             const studentById = await firestore.collection('students').doc(id);
             const dataStudentById = await studentById.get();
             var dataStudent = dataStudentById.data()
-            if(!checkDupplicateStudent(classroom.students,id)){
-            // console.log(classroom);
-            var json1 = {
-                "id": classIdFromPinCode,
-                "name": classroom.name,
-                "description": classroom.description,
-                "color": classroom.color,
-                "teacher": {
-                    "firstName": classroom.teacher.firstName,
-                    "lastName": classroom.teacher.lastName,
-                    "email": classroom.teacher.email,
-                    "imageUrl": classroom.teacher.imageUrl,
-                    "displayName": classroom.teacher.displayName
+            if (!checkDupplicateStudent(classroom.students, id)) {
+                // console.log(classroom);
+                var json1 = {
+                    "id": classIdFromPinCode,
+                    "name": classroom.name,
+                    "description": classroom.description,
+                    "color": classroom.color,
+                    "teacher": {
+                        "firstName": classroom.teacher.firstName,
+                        "lastName": classroom.teacher.lastName,
+                        "email": classroom.teacher.email,
+                        "imageUrl": classroom.teacher.imageUrl,
+                        "displayName": classroom.teacher.displayName
+                    }
                 }
-            }
-            var json2 = {
-                "id": id,
-                "firstName": dataStudent.firstName,
-                "lastName": dataStudent.lastName,
-                "displayName": dataStudent.displayName,
-                "email": dataStudent.email,
-                "uid": dataStudent.uid,
-                "imageUrl": dataStudent.imageUrl
-            }
-            classroomById.set({
-                students: [...classroom.students, json2],
-            }, {
-                merge: true
-            })
+                var json2 = {
+                    "id": id,
+                    "firstName": dataStudent.firstName,
+                    "lastName": dataStudent.lastName,
+                    "displayName": dataStudent.displayName,
+                    "email": dataStudent.email,
+                    "uid": dataStudent.uid,
+                    "imageUrl": dataStudent.imageUrl
+                }
+                classroomById.set({
+                    students: [...classroom.students, json2],
+                }, {
+                    merge: true
+                })
 
-            studentById.set({
-                classrooms: [...dataStudent.classrooms, json1],
-            }, {
-                merge: true
-            })
-            // await studentById.update(dataStudent)
-            // await classroomById.update(classroom);
-            res.send('Student record updated successfuly');
-        }else res.send('Student is alrady in classroom');
-    }
+                studentById.set({
+                    classrooms: [...dataStudent.classrooms, json1],
+                }, {
+                    merge: true
+                })
+                // await studentById.update(dataStudent)
+                // await classroomById.update(classroom);
+                res.send('Student record updated successfuly');
+            } else res.send('Student is alrady in classroom');
+        }
 
     } catch (error) {
         res.status(400).send(error.message);
@@ -200,9 +200,18 @@ const leftClassroom = async (req, res, next) => {
         delete classroom.students[studentId];
         // classroom.students[studentId] = null;
         await classroomById.set(classroom);
+
+        // Delete classrooms in user profile
+        const studentById = await firestore.collection('students').doc(studentId);
+        const dataStudentById = await studentById.get();
+        var dataStudent = dataStudentById.data()
+        studentById.set({
+            classrooms: [...dataStudent.classrooms.filter(classroom => classroom.id !== id)],
+        }, {
+            merge: true
+        })
+
         res.send('Student left classroom successfuly');
-
-
     } catch (error) {
         res.status(400).send(error.message);
     }
@@ -248,14 +257,14 @@ const getClassroomById = async (req, res, next) => {
     }
 }
 
-function checkDupplicateStudent(students,id){
+function checkDupplicateStudent(students, id) {
     var isDupplicate = false
     students.forEach(data => {
-        if(data.id == id) {
+        if (data.id == id) {
             isDupplicate = true;
         }
     })
-     return isDupplicate
+    return isDupplicate
 }
 
 module.exports = {
