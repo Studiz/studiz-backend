@@ -90,7 +90,7 @@ const getAllStudents = async (req, res, next) => {
 const getStudent = async (req, res, next) => {
     try {
         const id = req.params.id;
-        const student = await firestore.collection('Achievements').doc(id);
+        const student = await firestore.collection('students').doc(id);
         const data = await student.get();
         if (!data.exists) {
             res.status(404).send('Student with the given ID not found');
@@ -125,11 +125,13 @@ const deleteStudent = async (req, res, next) => {
 }
 
 
+
 module.exports = {
     signUpStudenWithEmail,
     signUpStudenWithGoogle,
     getAllStudents,
     getStudent,
     updateStudent,
-    deleteStudent
+    deleteStudent,
+  
 }

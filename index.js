@@ -7,16 +7,34 @@ const studentRoutes = require('./routes/student-routes');
 const classroomRoutes = require('./routes/classroom-routes');
 const teacherRoutes = require('./routes/teacher-routes');
 const userRoutes = require('./routes/user-routes');
+const quizTemplateRoutes = require('./routes/quiz-template-routers');
+const imageRoutes = require('./routes/image-routes');
+const socketIO = require('socket.io')
 
 const app = express();
 
 app.use(express.json());
 app.use(cors());
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended:true}))
 
 app.use('/api', studentRoutes.routes);
 app.use('/api', classroomRoutes.routes);
 app.use('/api', teacherRoutes.routes);
 app.use('/api', userRoutes.routes);
+app.use('/api', quizTemplateRoutes.routes);
+app.use('/api', imageRoutes.routes);
 
-app.listen(config.port, () => console.log('App is listening on port ' + config.port));
+const server = app.listen(config.port, () => console.log('App is listening on port ' + config.port));
+
+const io = socketIO(server)
+io.on('connection', (socket) => {
+    console.log('client socket connected')
+
+    socket.on('student', (response) => {
+        console.log(response)
+        const students = []
+        students.push(response)
+        io.sockets.emit('lobby', response)
+    })
+})
