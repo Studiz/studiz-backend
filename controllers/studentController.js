@@ -108,7 +108,7 @@ const updateStudent = async (req, res, next) => {
         const data = req.body;
         const student = await firestore.collection('students').doc(id);
         await student.update(data);
-        res.send('Student record updated successfuly');
+        res.send(student);
     } catch (error) {
         res.status(400).send(error.message);
     }
