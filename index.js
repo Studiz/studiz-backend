@@ -9,7 +9,9 @@ const teacherRoutes = require('./routes/teacher-routes');
 const userRoutes = require('./routes/user-routes');
 const quizTemplateRoutes = require('./routes/quiz-template-routers');
 const imageRoutes = require('./routes/image-routes');
+const quizRoutes = require('./routes/quiz-routes');
 const socketIO = require('socket.io')
+const fileupload = require('express-fileupload');
 
 const app = express();
 
@@ -17,6 +19,7 @@ app.use(express.json());
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:true}))
+app.use(fileupload());
 
 app.use('/api', studentRoutes.routes);
 app.use('/api', classroomRoutes.routes);
@@ -24,6 +27,7 @@ app.use('/api', teacherRoutes.routes);
 app.use('/api', userRoutes.routes);
 app.use('/api', quizTemplateRoutes.routes);
 app.use('/api', imageRoutes.routes);
+app.use('/api', quizRoutes.routes);
 
 const server = app.listen(config.port, () => console.log('App is listening on port ' + config.port));
 

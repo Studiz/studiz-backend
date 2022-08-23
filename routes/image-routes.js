@@ -1,9 +1,9 @@
 const express = require('express');
-const { uploadImage } = require('../controllers/imageController');
-
+const { uploadImageForStudent } = require('../controllers/imageController');
 const router = express.Router();
 
-router.post('/upload/image', uploadImage);
+// router.post('/upload/image',uploadImage);
+router.post('/upload/student/image/:id', uploadImageForStudent);
 
 
 

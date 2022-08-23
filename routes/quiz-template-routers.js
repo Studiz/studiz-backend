@@ -1,12 +1,12 @@
 const express = require('express');
-const { createQuiz, updateQuiz, deleteQuiz, getQuizById } = require('../controllers/quizTemplateController');
+const { createQuizTemplate, updateQuizTemplate, deleteQuizTemplate, getQuizTemplateById } = require('../controllers/quizTemplateController');
 
 const router = express.Router();
 
-router.post('/create/quiz',createQuiz);
-router.put('/update/quiz/:id',updateQuiz);
-router.delete('/delete/quiz/:id',deleteQuiz);
-router.get('/get/quiz/:id',getQuizById);
+router.post('/create/quizTemplate',createQuizTemplate);
+router.put('/update/quizTemplate/:id',updateQuizTemplate);
+router.delete('/delete/quizTemplate/:id',deleteQuizTemplate);
+router.get('/get/quizTemplate/:id',getQuizTemplateById);
 
 
 module.exports = {
