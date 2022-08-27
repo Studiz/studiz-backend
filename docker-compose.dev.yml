@@ -1,0 +1,10 @@
+version: "3"
+services:
+    backend:
+        container_name: studiz-backend
+        build: .
+        image: ghcr.io/studiz/studiz-backend:dev
+        restart: on-failure
+networks:
+    backend:
+        external: true
