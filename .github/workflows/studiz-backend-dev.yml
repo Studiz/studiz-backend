@@ -33,7 +33,7 @@ jobs:
           password: ${{ secrets.PASSWORD }}
           port: ${{ secrets.PORT }}
           source: ./docker-compose.dev.yml
-          target: ~/studiz-frontend/dev/
+          target: ~/studiz-backend/dev/
 
   deploy:
     needs: build
