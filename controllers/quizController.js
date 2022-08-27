@@ -7,9 +7,15 @@ const middleware = require('../middleware');
 const createQuiz = async (req, res, next) => {
     try { 
         const data = req.body
+        var pinCode = Math.floor(100000 + Math.random() * 900000)
+        const quizeTemplates = await firestore.collection('quizeTemplates').doc(id);
+        const quizeTemplatesData = await quizeTemplates.get().data();
+        
         var quizData = {
             data,
-            url : makeid(10)
+            url : makeid(10),
+            pinCode: pinCode,
+            quizeTemplatesData
         }
         await firestore.collection('quizes').doc().set(quizData);
         res.send(quizData);

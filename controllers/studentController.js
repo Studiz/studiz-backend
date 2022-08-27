@@ -105,11 +105,34 @@ const getStudent = async (req, res, next) => {
 const updateStudent = async (req, res, next) => {
     try {
         const id = req.params.id;
-        const data = req.body;
+        const body = req.body;
         const student = await firestore.collection('students').doc(id);
-        await student.update(data);
-        const dataStudent = await student.get();
-        res.send(dataStudent.data())
+        await student.update(body);
+
+        const getStudent = await student.get();
+        const dataStudent = getStudent.data()
+        const classrooms = dataStudent.classrooms
+
+        for (let i = 0; i < classrooms.length; i++) {
+            var classroomid = classrooms[i].id
+            const classroom = await firestore.collection('classrooms').doc(classroomid);
+            const getClassroom = await classroom.get()
+            const classroomData = getClassroom.data()
+            const studentInclass = classroomData.students
+            studentInclass.forEach(data => {
+                if (data.id == id) {
+                    data.displayName = body.displayName
+                    data.email = body.email
+                    data.firstName = body.firstName
+                    data.imageUrl = body.imageUrl
+                    data.lastName = body.lastName
+                    data.uid = body.uid
+                }
+            })
+            await classroom.update(classroomData);
+        }
+
+        res.send(dataStudent)
     } catch (error) {
         res.status(400).send(error.message);
     }
@@ -134,5 +157,5 @@ module.exports = {
     getStudent,
     updateStudent,
     deleteStudent,
-  
+
 }

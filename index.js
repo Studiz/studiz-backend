@@ -30,15 +30,45 @@ app.use('/api', imageRoutes.routes);
 app.use('/api', quizRoutes.routes);
 
 const server = app.listen(config.port, () => console.log('App is listening on port ' + config.port));
+const urlList = []
 
-const io = socketIO(server)
-io.on('connection', (socket) => {
-    console.log('client socket connected')
+// const io = socketIO(server)
+// io.on('connection', (socket) => {
+//     console.log('client socket connected')
 
-    socket.on('student', (response) => {
-        console.log(response)
-        const students = []
-        students.push(response)
-        io.sockets.emit('lobby', response)
-    })
-})
+//     socket.on('student', (response) => {
+//         console.log(response)
+//         const students = []
+//         students.push(response)
+//         io.sockets.emit('lobby', response)
+//     })
+// })
+
+// function createSocketIO(url) {
+//     if(!urlList.includes(url)){
+
+//     }
+    // const quizIo = socketIO(server +'/create/quiz/' + url)
+    // quizIo.on('connection', (socket) => {
+    //     console.log('client socket connected')
+    
+    //     socket.on('student', (response) => {
+    //         console.log(response)
+    //         const students = []
+    //         students.push(response)
+    //         io.sockets.emit('lobby', response)
+    //     })
+    // })
+// }
+
+// const classroomIo = socketIO(server +'/create/quiz/' + url)
+// classroomIo.on('connection', (socket) => {
+//     console.log('client socket connected')
+
+//     socket.on('student', (response) => {
+//         console.log(response)
+//         const students = []
+//         students.push(response)
+//         io.sockets.emit('classroom', response)
+//     })
+// })
