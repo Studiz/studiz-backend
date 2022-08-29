@@ -5,19 +5,67 @@ const Teacher = require('../models/teacher');
 const firestore = firebase.firestore();
 const middleware = require('../middleware');
 
-const addTeacher = async (req, res, next) => {
+const signUpTeacherWithEmail = async (req, res, next) => {
     try {
-        const data = await middleware.decodeToken(req, res, next);
+        var decodeToken = jwtDecode(req.headers.token);
         var teacherData = {
-            data,
-            "classrooms" : []
+            "email": decodeToken.email,
+            "firstName": decodeToken.fname,
+            "lastName": decodeToken.lname,
+            "displayName": "",
+            "imageUrl": "",
+            "classrooms": [],
+            "role": "TEACHER",
+            "uid": ""
         }
-        await firestore.collection('teachers').doc().set(teacherData);
-        res.send('Record saved successfuly');
+        firebase.auth().createUserWithEmailAndPassword(decodeToken.email, decodeToken.password)
+            .then(response => {
+                let accessToken = response.user.b.b.g
+                teacherData.uid = response.user.uid
+                firestore.collection('teachers').doc().set(teacherData);
+                res.send(accessToken);
+            })
+            .catch(error => {
+                res.send(error)
+            });
     } catch (error) {
         res.status(400).send(error.message);
     }
 }
+
+const signUpTeacherWithGoogle = async (req, res, next) => {
+    try {
+        var decodeToken = jwtDecode(req.headers.token);
+        var teacherData = {
+            "email": decodeToken.email,
+            "firstName": decodeToken.fname,
+            "lastName": decodeToken.lname,
+            "displayName": "",
+            "imageUrl": decodeToken.imageUrl,
+            "classrooms": [],
+            "role": "TEACHER", 
+            "uid": decodeToken.uid
+        }
+        firestore.collection('teachers').doc().set(teacherData);
+        res.send(teacherData)
+    } catch (error) {
+        res.status(400).send(error.message);
+    }
+}
+
+// const addTeacher = async (req, res, next) => {
+//     try {
+//         const data = await middleware.decodeToken(req, res, next);
+//         var teacherData = {
+//             data,
+//             "classrooms" : []
+//         }
+//         await firestore.collection('teachers').doc().set(teacherData);
+//         res.send('Record saved successfuly');
+//     } catch (error) {
+//         res.status(400).send(error.message);
+//     }
+// }
 
 const getTeacherById = async (req, res, next) => {
     try {

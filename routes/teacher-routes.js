@@ -3,7 +3,9 @@ const { addTeacher, getTeacherById, updateTeacher } = require('../controllers/te
 
 const router = express.Router();
 
-router.post('/teacher/signup', addTeacher);
+router.post('/teacher/signup/withEmail', signUpTeacherWithEmail);
+router.post('/teacher/signup/withGoogle', signUpTeacherWithGoogle);
+// router.post('/teacher/signup', addTeacher);
 router.get('/teacher/:id', getTeacherById);
 router.put('/teacher/:id', updateTeacher);
 
