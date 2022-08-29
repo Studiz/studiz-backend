@@ -1,5 +1,5 @@
 const express = require('express');
-const { addTeacher, getTeacherById, updateTeacher } = require('../controllers/teacherController');
+const {  getTeacherById, updateTeacher, signUpTeacherWithEmail, signUpTeacherWithGoogle } = require('../controllers/teacherController');
 
 const router = express.Router();
 
