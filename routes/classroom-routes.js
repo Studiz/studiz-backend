@@ -14,7 +14,7 @@ router.delete('/deletePinCode/:classroomId', deletePinCode);
 router.delete('/classroom/:id', deleteClassroom);
 router.put('/update/classroom/:id', updateClassroom);
 router.get('/getClassroom/byClassroomId/:id', getClassroomById);
-router.get('/kick/student/:id', kickStudntInClassroom);
+router.delete('/kick/student/:classroomId/:studentId', kickStudntInClassroom);
 
 module.exports = {
     routes: router
