@@ -233,14 +233,33 @@ const deleteClassroom = async (req, res, next) => {
 
 const updateClassroom = async (req, res, next) => {
     try {
-        const decodeToken = await middleware.decodeToken(req, res, next);
-        if (decodeToken) {
-            const id = req.params.id;
-            const data = req.body;
-            const classroom = await firestore.collection('classrooms').doc(id);
-            await classroom.update(data);
-            res.send('Classroom record updated successfuly');
-        } else res.send('Un authorize');
+        const id = req.params.id;
+        const body = req.body;
+        const classroom = await firestore.collection('classrooms').doc(id);
+        await classroom.update(body);
+console.log("dwddada");
+        const getClassroom = await classroom.get();
+        const dataClassroom = getClassroom.data()
+        const students = dataClassroom.students
+
+        for (let i = 0; i < students.length; i++) {
+            var studentId = students[i].id
+            const student = await firestore.collection('students').doc(studentId);
+            const getStudent = await student.get()
+            const studentData = getStudent.data()
+            const classroomInstd = studentData.classrooms
+            classroomInstd.forEach(data => {
+                if (data.id == id) {
+                    data.id = id,
+                    data.name = body.name,
+                    data.description = body.description,
+                    data.color = body.color
+                }
+            })
+            await student.update(studentData);
+        }
+
+        res.send(dataClassroom)
     } catch (error) {
         res.status(400).send(error.message);
     }
