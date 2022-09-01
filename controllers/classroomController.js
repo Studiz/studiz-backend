@@ -3,6 +3,7 @@
 const firebase = require('../db');
 const Classroom = require('../models/classroom');
 const firestore = firebase.firestore();
+const jwtDecode = require('jwt-decode');
 const middleware = require('../middleware');
 
 const createClassroom = async (req, res, next) => {
@@ -237,7 +238,7 @@ const updateClassroom = async (req, res, next) => {
         const body = req.body;
         const classroom = await firestore.collection('classrooms').doc(id);
         await classroom.update(body);
-console.log("dwddada");
+
         const getClassroom = await classroom.get();
         const dataClassroom = getClassroom.data()
         const students = dataClassroom.students
@@ -251,9 +252,9 @@ console.log("dwddada");
             classroomInstd.forEach(data => {
                 if (data.id == id) {
                     data.id = id,
-                    data.name = body.name,
-                    data.description = body.description,
-                    data.color = body.color
+                        data.name = body.name,
+                        data.description = body.description,
+                        data.color = body.color
                 }
             })
             await student.update(studentData);
@@ -290,6 +291,51 @@ function checkDupplicateStudent(students, id) {
     return isDupplicate
 }
 
+const kickStudntInClassroom = async (req, res, next) => {
+    try {
+        var decodeToken = jwtDecode(req.headers.token);
+        if (decodeToken.role === "TEACHER") {
+            const allClassroom = firestore.collection('classrooms');
+            const id = req.params.classroomId;
+            const studentId = req.params.studentId;
+            const classroomById = await allClassroom.doc(id)
+            var getClass = await classroomById.get()
+            var classroom = getClass.data()
+            // delete classroom.students[studentId];
+            // await classroomById.set(classroom);
+            classroomById.set({
+                students: [...classroom.students.filter(student => student.id !== studentId)],
+            }, {
+                merge: true
+            })
+
+            // Delete classrooms in user profile
+            const studentById = await firestore.collection('students').doc(studentId);
+            const dataStudentById = await studentById.get();
+            var dataStudent = dataStudentById.data()
+            studentById.set({
+                classrooms: [...dataStudent.classrooms.filter(classroom => classroom.id !== id)],
+            }, {
+                merge: true
+            })
+
+            res.send('Student left classroom successfuly');
+        } else {
+            res.send('Token invalid')
+        }
+    } catch (error) {
+        res.status(400).send(error.message);
+    }
+}
+
+const addHistoryQuizInClassroom = async (req, res, next) => {
+    try {
+        const allClassroom = firestore.collection('classrooms');
+    }catch (error) {
+        res.status(400).send(error.message);
+    }
+}
+
 module.exports = {
     createClassroom,
     getClassroomByPinCode,
@@ -300,5 +346,6 @@ module.exports = {
     deleteClassroom,
     getStudentByClassroomId,
     updateClassroom,
-    getClassroomById
+    getClassroomById,
+    kickStudntInClassroom
 }

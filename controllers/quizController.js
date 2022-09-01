@@ -3,17 +3,18 @@
 const firebase = require('../db');
 const firestore = firebase.firestore();
 const middleware = require('../middleware');
+const socketIO = require('socket.io')
 
 const createQuiz = async (req, res, next) => {
-    try { 
+    try {
         const data = req.body
         var pinCode = Math.floor(100000 + Math.random() * 900000)
         const quizeTemplates = await firestore.collection('quizeTemplates').doc(id);
         const quizeTemplatesData = await quizeTemplates.get().data();
-        
+
         var quizData = {
             data,
-            url : makeid(10),
+            url: makeid(10),
             pinCode: pinCode,
             quizeTemplatesData
         }
@@ -25,7 +26,7 @@ const createQuiz = async (req, res, next) => {
 }
 
 const updateQuiz = async (req, res, next) => {
-    try { 
+    try {
         const id = req.params.id;
         const data = req.body;
         const quiz = await firestore.collection('quizes').doc(id);
@@ -61,22 +62,26 @@ const getQuizById = async (req, res, next) => {
     }
 }
 
+
+
 function makeid(length) {
-    var result           = '';
-    var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var result = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     var charactersLength = characters.length;
-    for ( var i = 0; i < length; i++ ) {
-      result += characters.charAt(Math.floor(Math.random() * 
- charactersLength));
-   }
-   return result;
+    for (var i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() *
+            charactersLength));
+    }
+    return result;
 }
+
+
 
 
 
 module.exports = {
     deleteQuiz,
     updateQuiz,
-    createQuiz,  
+    createQuiz,
     getQuizById
 }

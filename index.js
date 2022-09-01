@@ -30,6 +30,7 @@ app.use('/api', imageRoutes.routes);
 app.use('/api', quizRoutes.routes);
 
 const server = app.listen(config.port, () => console.log('App is listening on port ' + config.port));
+// console.log(server);
 const urlList = []
 
 // const io = socketIO(server)
