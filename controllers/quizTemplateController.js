@@ -5,11 +5,9 @@ const firestore = firebase.firestore();
 const middleware = require('../middleware');
 
 const createQuizTemplate = async (req, res, next) => {
-    try { 
+    try {
         const data = req.body
-        var quizData = {
-            data
-        }
+        var quizData = data
         await firestore.collection('quizTemplates').doc().set(quizData);
         res.send('quizTemplates record saved successfuly');
     } catch (error) {
@@ -18,7 +16,7 @@ const createQuizTemplate = async (req, res, next) => {
 }
 
 const updateQuizTemplate = async (req, res, next) => {
-    try { 
+    try {
         const id = req.params.id;
         const data = req.body;
         const quiz = await firestore.collection('quizTemplates').doc(id);
@@ -59,6 +57,6 @@ const getQuizTemplateById = async (req, res, next) => {
 module.exports = {
     deleteQuizTemplate,
     updateQuizTemplate,
-    createQuizTemplate,  
+    createQuizTemplate,
     getQuizTemplateById
 }

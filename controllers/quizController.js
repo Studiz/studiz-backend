@@ -6,19 +6,30 @@ const middleware = require('../middleware');
 const socketIO = require('socket.io')
 
 const createQuiz = async (req, res, next) => {
+
     try {
         const data = req.body
-        var pinCode = Math.floor(100000 + Math.random() * 900000)
-        const quizeTemplates = await firestore.collection('quizeTemplates').doc(id);
-        const quizeTemplatesData = await quizeTemplates.get().data();
 
-        var quizData = {
-            data,
-            url: makeid(10),
+        var pinCode = Math.floor(100000 + Math.random() * 900000)
+        const quizeTemplates = await firestore.collection('quizTemplates').doc(data.quizTemplateId);
+        const quizeTemplatesData = await quizeTemplates.get();
+
+        // var quizData = {
+        //     data,
+        //     url: makeid(10),
+        //     pinCode: pinCode,
+        //     quizeTemplatesData
+        // }
+
+        let quizData = {
+            teacherId: data.teacherId,
             pinCode: pinCode,
-            quizeTemplatesData
+            quizTemplate: quizeTemplatesData.data(),
+            studentList: data.studentList,
+            studentResultList: data.studentResultList,
         }
-        await firestore.collection('quizes').doc().set(quizData);
+
+        await firestore.collection('quizes').add(quizData);
         res.send(quizData);
     } catch (error) {
         res.status(400).send(error.message);
@@ -75,13 +86,28 @@ function makeid(length) {
     return result;
 }
 
-
-
+const addStudentToQuiz = async (req, res, next) => {
+    let quiz
+    try {
+        const quizId = req.params.quizId;
+        const studentId = req.body.studentId;
+        quiz = await firestore.collection('quizes').doc(quizId);
+        const getQuiz = await quiz.get();
+        let quizData = getQuiz.data();
+        quizData.studentList.push(studentId)
+        console.log(quizData);
+        await quiz.set(quizData)
+        res.send('student added to quiz');
+    } catch (error) {
+        res.status(400).send(error.message);
+    }
+}
 
 
 module.exports = {
     deleteQuiz,
     updateQuiz,
     createQuiz,
-    getQuizById
+    getQuizById,
+    addStudentToQuiz
 }

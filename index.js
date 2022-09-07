@@ -18,7 +18,9 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended:true}))
+app.use(bodyParser.urlencoded({
+    extended: true
+}))
 app.use(fileupload());
 
 app.use('/api', studentRoutes.routes);
@@ -30,39 +32,55 @@ app.use('/api', imageRoutes.routes);
 app.use('/api', quizRoutes.routes);
 
 const server = app.listen(config.port, () => console.log('App is listening on port ' + config.port));
-// console.log(server);
-const urlList = []
 
-// const io = socketIO(server)
-// io.on('connection', (socket) => {
-//     console.log('client socket connected')
 
-//     socket.on('student', (response) => {
-//         console.log(response)
-//         const students = []
-//         students.push(response)
-//         io.sockets.emit('lobby', response)
-//     })
-// })
+const io = socketIO(server, {
+    cors: {
+        origin: "*",
+        methods: "*",
+        credential: "*"
+    }
+})
 
-// function createSocketIO(url) {
-//     if(!urlList.includes(url)){
 
-//     }
-    // const quizIo = socketIO(server +'/create/quiz/' + url)
-    // quizIo.on('connection', (socket) => {
-    //     console.log('client socket connected')
-    
-    //     socket.on('student', (response) => {
-    //         console.log(response)
-    //         const students = []
-    //         students.push(response)
-    //         io.sockets.emit('lobby', response)
-    //     })
+io.on('connection', (socket) => {
+    console.log('client socket connected')
+
+    socket.displayName = "Guest"
+
+    socket.on('join-lobby', (data) => {
+        socket.join(data.room, () => {
+
+        })
+        console.log(data);
+    })
+
+    // socket.on('student', (response) => {
+    //     console.log(response)
+    //     const students = []
+    //     students.push(response)
+    //     io.sockets.emit('lobby', response)
     // })
-// }
+})
 
-// const classroomIo = socketIO(server +'/create/quiz/' + url)
+function createSocketIO(url) {
+    if (!urlList.includes(url)) {
+
+    }
+    const quizIo = socketIO(server + '/create/quiz/' + url)
+    quizIo.on('connection', (socket) => {
+        console.log('client socket connected')
+
+        socket.on('student', (response) => {
+            console.log(response)
+            const students = []
+            students.push(response)
+            io.sockets.emit('lobby', response)
+        })
+    })
+}
+
+// const classroomIo = socketIO(server + '/create/quiz/' + url)
 // classroomIo.on('connection', (socket) => {
 //     console.log('client socket connected')
 
