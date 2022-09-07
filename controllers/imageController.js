@@ -43,7 +43,7 @@ const uploadImageForStudent = async (req, res, next) => {
     }
 }
 
-const uploadImageForQuiz = async (req, res, next) => {
+const updateImageForQuiz = async (req, res, next) => {
     try {
    
         const file = req.files.studizImg;
@@ -80,6 +80,30 @@ const uploadImageForQuiz = async (req, res, next) => {
     }
 }
 
+const uploadImageForQuiz = async (req, res, next) => {
+    try {
+   
+        const file = req.files.studizImg;
+        const timestamp = Date.now()
+        const fileName = `${timestamp}_${file.name}`;
+        const imageRef = storage.child(fileName);
+    
+        const snapshot = await imageRef.put(file.data, {
+            contentType: file.mimetype,
+        })
+  
+        const imageURL = await snapshot.ref.getDownloadURL();
+
+            res.status(200).json({
+               "imageUrl" : imageURL
+            })
+
+
+    } catch (error) {
+        res.status(400).send(error.message);
+    }
+}
+
 const deleteImage = async (req, res, next) => {
     try {
         const fileUrl = req.body.imageUrl
@@ -100,6 +124,7 @@ const deleteImage = async (req, res, next) => {
 
 module.exports = {
     uploadImageForStudent,
-    uploadImageForQuiz,
-    deleteImage
+    updateImageForQuiz,
+    deleteImage,
+    uploadImageForQuiz
 }

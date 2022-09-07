@@ -87,10 +87,34 @@ const getTeacherById = async (req, res, next) => {
 const updateTeacher = async (req, res, next) => {
     try {
         const id = req.params.id;
-        const data = req.body;
+        const body = req.body;
         const teacher = await firestore.collection('teachers').doc(id);
-        await teacher.update(data);
-        res.send('Teacher record updated successfuly');
+        await teacher.update(body);
+
+        const getTeacher = await teacher.get();
+        const dataTeacher = getTeacher.data()
+        const classrooms = dataTeacher.classrooms
+
+        for (let i = 0; i < classrooms.length; i++) {
+            var classroomid = classrooms[i].id
+            const classroom = await firestore.collection('classrooms').doc(classroomid);
+            const getClassroom = await classroom.get()
+            const classroomData = getClassroom.data()
+            const teacherInclass = classroomData.teacher
+            // studentInclass.forEach(data => {
+            //     if (data.id == id) {
+                teacherInclass.displayName = body.displayName
+                teacherInclass.email = body.email
+                teacherInclass.firstName = body.firstName
+                teacherInclass.imageUrl = body.imageUrl
+                teacherInclass.lastName = body.lastName
+                teacherInclass.uid = body.uid
+            //     }
+            // })
+            await classroom.update(classroomData);
+        }
+
+        res.send(dataTeacher)
     } catch (error) {
         res.status(400).send(error.message);
     }
