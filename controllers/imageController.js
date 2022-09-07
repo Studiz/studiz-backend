@@ -43,7 +43,7 @@ const uploadImageForStudent = async (req, res, next) => {
     }
 }
 
-const updateImageForQuiz = async (req, res, next) => {
+const updateImageForQuizTemplate = async (req, res, next) => {
     try {
    
         const file = req.files.studizImg;
@@ -62,7 +62,7 @@ const updateImageForQuiz = async (req, res, next) => {
      
             const id = req.params.id;
             const no = req.params.no
-            const quiz = await firestore.collection('quizes').doc(id);
+            const quiz = await firestore.collection('quizTemplates').doc(id);
             // console.log(student);
             const datQuiz = await quiz.get();
             var data = datQuiz.data()
@@ -80,7 +80,7 @@ const updateImageForQuiz = async (req, res, next) => {
     }
 }
 
-const uploadImageForQuiz = async (req, res, next) => {
+const uploadImage = async (req, res, next) => {
     try {
    
         const file = req.files.studizImg;
@@ -124,7 +124,7 @@ const deleteImage = async (req, res, next) => {
 
 module.exports = {
     uploadImageForStudent,
-    updateImageForQuiz,
+    updateImageForQuizTemplate,
     deleteImage,
-    uploadImageForQuiz
+    uploadImage
 }
