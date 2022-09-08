@@ -37,6 +37,28 @@ const deleteQuizTemplate = async (req, res, next) => {
     }
 }
 
+const getQuizTemplateByTeacherId = async (req, res, next) => {
+    try {
+        const teacherId = req.params.id;
+        const quizTemplates = await firestore.collection('quizTemplates');
+        const data = await quizTemplates.get();
+        const quizTemplatesArray = []
+        data.forEach(doc => {
+            if(doc.data().teacherId === teacherId){
+            quizTemplatesArray.push(doc.data());
+            }
+        });
+        
+        if (!quizTemplatesArray) {
+            res.status(404).send('quizTemplates with the given TeacherId not found');
+        } else {
+            res.send(quizTemplatesArray);
+        }
+    } catch (error) {
+        res.status(400).send(error.message);
+    }
+}
+
 const getQuizTemplateById = async (req, res, next) => {
     try {
         const id = req.params.id;
@@ -58,5 +80,6 @@ module.exports = {
     deleteQuizTemplate,
     updateQuizTemplate,
     createQuizTemplate,
-    getQuizTemplateById
+    getQuizTemplateById,
+    getQuizTemplateByTeacherId
 }
