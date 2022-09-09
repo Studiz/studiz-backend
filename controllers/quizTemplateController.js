@@ -44,11 +44,13 @@ const getQuizTemplateByTeacherId = async (req, res, next) => {
         const data = await quizTemplates.get();
         const quizTemplatesArray = []
         data.forEach(doc => {
-            if(doc.data().teacherId === teacherId){
-            quizTemplatesArray.push(doc.data());
+            if (doc.data().teacherId === teacherId) {
+                let quizTemplate = doc.data()
+                quizTemplate.id = doc.id
+                quizTemplatesArray.push(quizTemplate);
             }
         });
-        
+
         if (!quizTemplatesArray) {
             res.status(404).send('quizTemplates with the given TeacherId not found');
         } else {
