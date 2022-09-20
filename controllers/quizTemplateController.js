@@ -8,8 +8,13 @@ const createQuizTemplate = async (req, res, next) => {
     try {
         const data = req.body
         var quizData = data
-        await firestore.collection('quizTemplates').doc().set(quizData);
-        res.send('quizTemplates record saved successfuly');
+        quizData.createAt = new Date()
+        await firestore.collection('quizTemplates').add(quizData).then((res) => {
+            data.id = res.id
+        });
+        res.status(200).json({
+            data
+        });
     } catch (error) {
         res.status(400).send(error.message);
     }
@@ -44,11 +49,13 @@ const getQuizTemplateByTeacherId = async (req, res, next) => {
         const data = await quizTemplates.get();
         const quizTemplatesArray = []
         data.forEach(doc => {
-            if(doc.data().teacherId === teacherId){
-            quizTemplatesArray.push(doc.data());
+            if (doc.data().teacherId === teacherId) {
+                let quizTemplate = doc.data()
+                quizTemplate.id = doc.id
+                quizTemplatesArray.push(quizTemplate);
             }
         });
-        
+
         if (!quizTemplatesArray) {
             res.status(404).send('quizTemplates with the given TeacherId not found');
         } else {
