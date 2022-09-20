@@ -47,12 +47,13 @@ io.on('connection', (socket) => {
     console.log('client socket connected')
 
     socket.displayName = "Guest"
+    socket.members = []
 
     socket.on('join-lobby', (data) => {
-        socket.join(data.room, () => {
-
-        })
-        console.log(data);
+        socket.join(data.quizId)
+        socket.members.push(data.user)
+        socket.to(data.quizId).emit('joined', socket.members)
+        // console.log(socket.members);
     })
 
     // socket.on('student', (response) => {

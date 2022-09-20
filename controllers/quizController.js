@@ -25,11 +25,11 @@ const createQuiz = async (req, res, next) => {
             teacherId: data.teacherId,
             pinCode: pinCode,
             quizTemplate: quizeTemplatesData.data(),
-            studentList: data.studentList,
-            studentResultList: data.studentResultList,
+            studentList: data.studentList
         }
 
-        await firestore.collection('quizes').add(quizData);
+        let quiz = await firestore.collection('quizes').add(quizData);
+        quizData.id = await quiz.id
         res.send(quizData);
     } catch (error) {
         res.status(400).send(error.message);
@@ -86,18 +86,49 @@ const getQuizById = async (req, res, next) => {
 //     return result;
 // }
 
-const addStudentToQuiz = async (req, res, next) => {
+const joinQuiz = async (req, res, next) => {
     let quiz
     try {
-        const quizId = req.params.quizId;
+        const pinCode = req.params.pinCode;
         const studentId = req.body.studentId;
-        quiz = await firestore.collection('quizes').doc(quizId);
-        const getQuiz = await quiz.get();
-        let quizData = getQuiz.data();
-        quizData.studentList.push(studentId)
-        console.log(quizData);
-        await quiz.set(quizData)
-        res.send('student added to quiz');
+
+        const allQuiz = firestore.collection('quizes');
+        const snapshot = await allQuiz.where('pinCode', '==', Number(req.params.pinCode)).get();
+
+        let quizIdFromPinCode
+        if (snapshot.empty) {
+            res.status(404).send('Quiz with the given pinCode not found');
+        } else {
+            snapshot.forEach(doc => {
+                quizIdFromPinCode = doc.id
+            });
+            const quizById = await allQuiz.doc(quizIdFromPinCode)
+            let getQuiz = await quizById.get()
+            quiz = getQuiz.data()
+
+            // find student data
+            const studentById = await firestore.collection('students').doc(studentId);
+            const getStudent = await studentById.get();
+            let dataStudent = getStudent.data()
+            delete dataStudent.classrooms
+
+            let isJoined = quiz.studentList.some(student => {
+                return student.uid === dataStudent.uid
+            })
+            if (!isJoined) {
+                quiz.studentList.push(dataStudent)
+                quizById.set(quiz)
+
+                delete quiz.quizTemplate.questions
+                res.status(200).json({
+                    "quizId": quizIdFromPinCode,
+                    "quizDetails": quiz
+                });
+            } else {
+                res.status(400).send('student already joined');
+            }
+
+        }
     } catch (error) {
         res.status(400).send(error.message);
     }
@@ -109,5 +140,5 @@ module.exports = {
     updateQuiz,
     createQuiz,
     getQuizById,
-    addStudentToQuiz
+    joinQuiz
 }
