@@ -10,6 +10,7 @@ const userRoutes = require('./routes/user-routes');
 const quizTemplateRoutes = require('./routes/quiz-template-routers');
 const imageRoutes = require('./routes/image-routes');
 const quizRoutes = require('./routes/quiz-routes');
+const storeRoutes = require('./routes/item-routes');
 const socketIO = require('socket.io')
 const fileupload = require('express-fileupload');
 
@@ -30,6 +31,7 @@ app.use('/api', userRoutes.routes);
 app.use('/api', quizTemplateRoutes.routes);
 app.use('/api', imageRoutes.routes);
 app.use('/api', quizRoutes.routes);
+app.use('/api', storeRoutes.routes);
 
 const server = app.listen(config.port, () => console.log('App is listening on port ' + config.port));
 
