@@ -2,8 +2,18 @@
 
 const firebase = require('../db');
 const firestore = firebase.firestore();
-const middleware = require('../middleware');
-const socketIO = require('socket.io')
+var nodemailer = require('nodemailer');
+
+var transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+ port: 587,
+ secure: false,
+    auth: {
+      user: 'studiz.games@gmail.com',
+      pass: 'zpmofowhghponmai'
+    }
+  });
+
 
 const createQuiz = async (req, res, next) => {
 
@@ -63,6 +73,22 @@ const getQuizById = async (req, res, next) => {
         const id = req.params.id;
         const quiz = await firestore.collection('quizes').doc(id);
         const data = await quiz.get();
+        var mailOptions = {
+            from: '"Fred Foo 👻" <studiz.games@gmail.com>',
+            to: 'actlook55@gmail.com',
+            subject: 'Sending Email using Node.js',
+            text: 'That was easy!'
+          };
+          transporter.sendMail(mailOptions, function(error, info){
+            if (error) {
+              console.log(error);
+            } else {
+              console.log('Email sent: ' + info.response);
+            }
+          });
+      
+   
+
         if (!data.exists) {
             res.status(404).send('quiz with the given ID not found');
         } else {
