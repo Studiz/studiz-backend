@@ -3,6 +3,8 @@
 const firebase = require('../db');
 const firestore = firebase.firestore();
 var nodemailer = require('nodemailer');
+const sgMail = require('@sendgrid/mail')
+sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 
 var transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
@@ -25,6 +27,7 @@ const createQuiz = async (req, res, next) => {
         const quizeTemplates = await firestore.collection('quizTemplates').doc(data.quizTemplateId);
         const quizeTemplatesData = await quizeTemplates.get();
 
+
         // var quizData = {
         //     data,
         //     url: makeid(10),
@@ -41,6 +44,31 @@ const createQuiz = async (req, res, next) => {
 
         let quiz = await firestore.collection('quizes').add(quizData);
         quizData.id = await quiz.id
+        if (data.classroomId) {
+            var classroomId = data.classroomId
+            console.log(classroomId);
+            const classroom = await firestore.collection('classrooms').doc(classroomId);
+            const getClass = await classroom.get();
+            const classroomData = getClass.data();
+            // console.log(classroomData);
+            const studentInClass = classroomData.students
+            studentInClass.forEach(doc => {
+
+                var mailOptions = {
+                    from: 'studiz.games@gmail.com',
+                    to: `${doc.email}`,
+                    subject: 'Sending Email using Node.js',
+                    text: 'That was easy!'
+                };
+                transporter.sendMail(mailOptions, function (error, info) {
+                    if (error) {
+                        console.log(error);
+                    } else {
+                        console.log('Email sent: ' + info.response);
+                    }
+                });
+            });
+        }
         res.send(quizData);
     } catch (error) {
         res.status(400).send(error.message);
@@ -74,21 +102,29 @@ const getQuizById = async (req, res, next) => {
         const id = req.params.id;
         const quiz = await firestore.collection('quizes').doc(id);
         const data = await quiz.get();
-        var mailOptions = {
-            from: 'studiz.games@gmail.com',
-            to: 'actlook55@gmail.com',
-            subject: 'Sending Email using Node.js',
-            text: 'That was easy!'
-        };
-        transporter.sendMail(mailOptions, function (error, info) {
-            if (error) {
-                console.log(error);
-            } else {
-                console.log('Email sent: ' + info.response);
-            }
-        });
+        // var mailOptions = {
+        //     from: 'studiz.games@gmail.com',
+        //     to: 'apisit.top@mail.kmutt.ac.th',
+        //     subject: 'Sending Email using Node.js',
+        //     text: 'That was easy!'
+        // };
+        // transporter.sendMail(mailOptions, function (error, info) {
+        //     if (error) {
+        //         console.log(error);
+        //     } else {
+        //         console.log('Email sent: ' + info.response);
+        //     }
+        // });
 
+        // const msg = {
+        //     to: 'apisit7985@gmail.com',
+        //     from: 'traitawat.25957@mail.kmutt.ac.th',
+        //     templateId: 'd-a497b6ba8e0945599acf546010466e00',
+        //     dynamicTemplateData: {
 
+        //     },
+        //   };
+        //   sgMail.send(msg);
 
         if (!data.exists) {
             res.status(404).send('quiz with the given ID not found');
