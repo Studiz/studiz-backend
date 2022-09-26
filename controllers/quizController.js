@@ -36,7 +36,8 @@ const createQuiz = async (req, res, next) => {
             teacherId: data.teacherId,
             pinCode: pinCode,
             quizTemplate: quizeTemplatesData.data(),
-            studentList: data.studentList
+            studentList: data.studentList,
+            isLive: true
         }
 
         let quiz = await firestore.collection('quizes').add(quizData);
@@ -74,19 +75,19 @@ const getQuizById = async (req, res, next) => {
         const id = req.params.id;
         const quiz = await firestore.collection('quizes').doc(id);
         const data = await quiz.get();
-        var mailOptions = {
-            from: 'studiz.games@gmail.com',
-            to: 'actlook55@gmail.com',
-            subject: 'Sending Email using Node.js',
-            text: 'That was easy!'
-        };
-        transporter.sendMail(mailOptions, function (error, info) {
-            if (error) {
-                console.log(error);
-            } else {
-                console.log('Email sent: ' + info.response);
-            }
-        });
+        // var mailOptions = {
+        //     from: 'studiz.games@gmail.com',
+        //     to: 'actlook55@gmail.com',
+        //     subject: 'Sending Email using Node.js',
+        //     text: 'That was easy!'
+        // };
+        // transporter.sendMail(mailOptions, function (error, info) {
+        //     if (error) {
+        //         console.log(error);
+        //     } else {
+        //         console.log('Email sent: ' + info.response);
+        //     }
+        // });
 
 
 
@@ -100,6 +101,22 @@ const getQuizById = async (req, res, next) => {
     }
 }
 
+const getQuizByIdForStudent = async (req, res, next) => {
+    try {
+        const id = req.params.id;
+        const quiz = await firestore.collection('quizes').doc(id);
+        const data = await quiz.get();
+        if (!data.exists) {
+            res.status(404).send('quiz with the given ID not found');
+        } else {
+            let dataForStudent = data.data()
+            delete dataForStudent.quizTemplate.questions
+            res.send(dataForStudent);
+        }
+    } catch (error) {
+        res.status(400).send(error.message);
+    }
+}
 
 
 // function makeid(length) {
@@ -142,7 +159,9 @@ const joinQuiz = async (req, res, next) => {
             let isJoined = quiz.studentList.some(student => {
                 return student.uid === dataStudent.uid
             })
-            if (!isJoined) {
+            // fortest
+            if (true) {
+                // if (!isJoined) {
                 quiz.studentList.push(dataStudent)
                 quizById.set(quiz)
 
@@ -167,5 +186,6 @@ module.exports = {
     updateQuiz,
     createQuiz,
     getQuizById,
-    joinQuiz
+    joinQuiz,
+    getQuizByIdForStudent
 }
