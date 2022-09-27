@@ -12,8 +12,8 @@ var transporter = nodemailer.createTransport({
     service: 'gmail',
     secure: false,
     auth: {
-        user: 'studiz.games@gmail.com',
-        pass: 'eezzdeszuplzhseg'
+        user: process.env.STUDIZ_EMAIL,
+        pass: process.env.STUDIZ_PASSWORD
     }
 });
 
@@ -56,7 +56,7 @@ const createQuiz = async (req, res, next) => {
             studentInClass.forEach(doc => {
 
                 var mailOptions = {
-                    from: 'studiz.games@gmail.com',
+                    from: process.env.STUDIZ_EMAIL,
                     to: `${doc.email}`,
                     subject: 'The quiz has start',
                     text: 'Let login and play!',
