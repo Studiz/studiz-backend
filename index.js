@@ -44,53 +44,67 @@ const io = socketIO(server, {
     }
 })
 
+let game
+let leaderboard
+let members = []
 
-io.on('connection', (socket) => {
-    console.log('client socket connected')
-
-    socket.displayName = "Guest"
-    socket.members = []
-
-    socket.on('join-lobby', (data) => {
-        socket.join(data.quizId)
-        socket.members.push(data.user)
-        socket.to(data.quizId).emit('joined', socket.members)
-        // console.log(socket.members);
-    })
-
-    // socket.on('student', (response) => {
-    //     console.log(response)
-    //     const students = []
-    //     students.push(response)
-    //     io.sockets.emit('lobby', response)
-    // })
-})
-
-function createSocketIO(url) {
-    if (!urlList.includes(url)) {
-
-    }
-    const quizIo = socketIO(server + '/create/quiz/' + url)
-    quizIo.on('connection', (socket) => {
-        console.log('client socket connected')
-
-        socket.on('student', (response) => {
-            console.log(response)
-            const students = []
-            students.push(response)
-            io.sockets.emit('lobby', response)
+const addPlayer = (user, socketId) => {
+    !members.some((member) => member.socketId === socketId) &&
+        members.push({
+            user,
+            socketId
         })
-    })
 }
 
-// const classroomIo = socketIO(server + '/create/quiz/' + url)
-// classroomIo.on('connection', (socket) => {
-//     console.log('client socket connected')
+const getMember = (socketId) => {
+    return members.find((member) => member.socketId === socketId)
+}
 
-//     socket.on('student', (response) => {
-//         console.log(response)
-//         const students = []
-//         students.push(response)
-//         io.sockets.emit('classroom', response)
+
+io.on('connection', async (socket) => {
+    console.log('client socket connected')
+
+    socket.on("init-game", (newGame, newLeaderboard) => {
+        // game = JSON.parse(JSON.stringify(newGame))
+        // leaderboard = JSON.parse(JSON.stringify(newLeaderboard))
+        // socket.join(game.pin)
+        // hostId = socket.id
+    })
+
+    socket.on('join-lobby', async (data) => {
+        let user = await data
+        members.push(user)
+        socket.join(data.quizId)
+        addPlayer(data.user, data.socketId)
+        console.log(members);
+        io.emit("joined", members)
+        // socket.to(data.quizId).emit('joined', members)
+        // socket.emit('load-members', members)
+        // socket.join(data.quizId)
+        // socket.members.push(data.user)
+        // members.push(data.user)
+
+        // socket.to(data.quizId).emit('joined', socket.members)
+    })
+
+
+
+})
+
+// function createSocketIO(url) {
+//     if (!urlList.includes(url)) {
+
+//     }
+//     const quizIo = socketIO(server + '/create/quiz/' + url)
+//     quizIo.on('connection', (socket) => {
+//         console.log('client socket connected')
+
+//         socket.on('student', (response) => {
+//             console.log(response)
+//             const students = []
+//             students.push(response)
+//             io.sockets.emit('lobby', response)
+//         })
 //     })
-// })
+// }
+
