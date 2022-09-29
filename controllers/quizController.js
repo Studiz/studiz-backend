@@ -3,7 +3,10 @@
 const firebase = require('../db');
 const firestore = firebase.firestore();
 var nodemailer = require('nodemailer');
-const sgMail = require('@sendgrid/mail')
+const sgMail = require('@sendgrid/mail');
+const {
+    Socket
+} = require('socket.io');
 sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 
 var transporter = nodemailer.createTransport({
@@ -186,31 +189,51 @@ const joinQuiz = async (req, res, next) => {
             let getQuiz = await quizById.get()
             quiz = getQuiz.data()
 
-            // find student data
-            const studentById = await firestore.collection('students').doc(studentId);
-            const getStudent = await studentById.get();
-            let dataStudent = getStudent.data()
-            delete dataStudent.classrooms
-
-            let isJoined = quiz.studentList.some(student => {
-                return student.uid === dataStudent.uid
-            })
-            // fortest
-            if (true) {
-                // if (!isJoined) {
-                quiz.studentList.push(dataStudent)
-                quizById.set(quiz)
-
-                delete quiz.quizTemplate.questions
-                res.status(200).json({
-                    "quizId": quizIdFromPinCode,
-                    "quizDetails": quiz
-                });
-            } else {
-                res.status(400).send('student already joined');
-            }
+            res.status(200).json({
+                "quizId": quizIdFromPinCode,
+                "quizDetails": quiz
+            });
 
         }
+
+
+        // ทำควบคู่กับ Socket ดูทรงไม่น่าใช้
+        // let quizIdFromPinCode
+        // if (snapshot.empty) {
+        //     res.status(404).send('Quiz with the given pinCode not found');
+        // } else {
+        //     snapshot.forEach(doc => {
+        //         quizIdFromPinCode = doc.id
+        //     });
+        //     const quizById = await allQuiz.doc(quizIdFromPinCode)
+        //     let getQuiz = await quizById.get()
+        //     quiz = getQuiz.data()
+
+        //     // find student data
+        //     const studentById = await firestore.collection('students').doc(studentId);
+        //     const getStudent = await studentById.get();
+        //     let dataStudent = getStudent.data()
+        //     delete dataStudent.classrooms
+
+        //     let isJoined = quiz.studentList.some(student => {
+        //         return student.uid === dataStudent.uid
+        //     })
+        //     // fortest
+        //     if (true) {
+        //         // if (!isJoined) {
+        //         quiz.studentList.push(dataStudent)
+        //         quizById.set(quiz)
+
+        //         delete quiz.quizTemplate.questions
+        //         res.status(200).json({
+        //             "quizId": quizIdFromPinCode,
+        //             "quizDetails": quiz
+        //         });
+        //     } else {
+        //         res.status(400).send('student already joined');
+        //     }
+
+        // }
     } catch (error) {
         res.status(400).send(error.message);
     }
