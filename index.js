@@ -46,8 +46,12 @@ const io = socketIO(server, {
 
 const rooms = new Map();
 
-const getMembers = async (quizId) => {
-    return await rooms.get(quizId).members
+const getMembers = (quizId) => {
+    if (quizId) {
+        return rooms.get(quizId).members ? rooms.get(quizId).members : []
+    } else {
+        return []
+    }
 }
 
 const getRoom = (quizId) => {
@@ -71,16 +75,43 @@ io.on('connection', async (socket) => {
 
     socket.on('join-lobby', (data) => {
         socket.join(data.quizId)
-        if (!getMembers(data.quizId).some((member) => member.memberId === data.memberId)) {
+        if (getMembers(data.quizId).length > 0) {
+            if (!getMembers(data.quizId).some((member) => member.memberId === data.memberId)) {
+                getMembers(data.quizId).push(data)
+            } else {
+                let index = getMembers(data.quizId).findIndex((member) => member.memberId === data.memberId)
+                getMembers(data.quizId)[index].socketId = data.socketId
+            }
+        } else {
             getMembers(data.quizId).push(data)
         }
+
         io.to(data.quizId).emit("joined", getMembers(data.quizId));
     })
 
     socket.on('leave-lobby', (data) => {
-        let index = getMembers(data.quizId).findIndex((member) => member.memberId === data.memberId)
-        getMembers(data.quizId).splice(index, 1)
-        socket.leave(data.quizId)
-        io.to(data.quizId).emit("joined", getMembers(data.quizId));
+        if (getMembers(data.quizId).length > 0) {
+            let index = getMembers(data.quizId).findIndex((member) => member.memberId === data.memberId)
+            getMembers(data.quizId).splice(index, 1)
+            io.to(data.quizId).emit("joined", getMembers(data.quizId));
+            socket.leave(data.quizId)
+
+        }
     })
+
+    socket.on("disconnect", () => {
+        rooms.forEach((value, key) => {
+            if (value.members.length > 0) {
+                if (value.members.some((member) => member.socketId === socket.id)) {
+                    let index = value.members.findIndex((member) => member.socketId === socket.id)
+                    value.members.splice(index, 1)
+                    io.to(key).emit("joined", value.members);
+                    socket.leave(key)
+                }
+            }
+
+
+        })
+
+    });
 })
