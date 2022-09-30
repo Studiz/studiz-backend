@@ -99,6 +99,12 @@ io.on('connection', async (socket) => {
         }
     })
 
+    socket.on('end-game', (data) => {
+        io.to(data.quizId).emit("move-to-home");
+        socket.leave(data.quizId)
+        rooms.delete(data.quizId)
+    })
+
     socket.on("disconnect", () => {
         rooms.forEach((value, key) => {
             if (value.members.length > 0) {
