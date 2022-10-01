@@ -5,7 +5,7 @@ const {
 
 const router = express.Router();
 
-router.post('/user/checkDuplicateEmail', checkDuplicateEmail);
+router.get('/user/checkDuplicateEmail', checkDuplicateEmail);
 router.post('/user/signIn', signInUser);
 router.get('/user/getCustomToken/:uid', getCustomTokenByUid);
 

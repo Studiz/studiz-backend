@@ -240,6 +240,22 @@ const joinQuiz = async (req, res, next) => {
     }
 }
 
+const deletePinCode = async (req, res, next) => {
+    try {
+        const id = req.params.quizId;
+        const allQuiz = firestore.collection('quizes');
+        const quizById = await allQuiz.doc(id)
+        var getQuiz = await quizById.get()
+        var quiz = getQuiz.data()
+        delete quiz['pinCode'];
+        await quizById.set(quiz);
+        res.send('PinCode deleted!');
+    } catch (error) {
+        res.status(400).send(error.message);
+    }
+}
+
+
 
 module.exports = {
     deleteQuiz,
@@ -247,5 +263,6 @@ module.exports = {
     createQuiz,
     getQuizById,
     joinQuiz,
-    getQuizByIdForStudent
+    getQuizByIdForStudent,
+    deletePinCode
 }

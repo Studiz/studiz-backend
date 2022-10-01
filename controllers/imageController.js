@@ -43,6 +43,37 @@ const uploadImageForStudent = async (req, res, next) => {
     }
 }
 
+const uploadImageForTeacher = async (req, res, next) => {
+    try {
+
+        const file = req.files.studizImg;
+        console.log(file);
+        const timestamp = Date.now()
+        const fileName = `${timestamp}_${file.name}`;
+        console.log(fileName)
+        const imageRef = storage.child(fileName);
+
+        const snapshot = await imageRef.put(file.data, {
+            contentType: file.mimetype,
+        })
+
+        const imageURL = await snapshot.ref.getDownloadURL();
+        console.log(imageURL);
+
+        const id = req.params.id;
+        const teacher = await firestore.collection('teachers').doc(id);
+        // console.log(student);
+        const dataTeacher = await teacher.get();
+        var data = dataTeacher.data()
+        data.imageUrl = imageURL
+        await teacher.update(data);
+        res.status(200).send(data)
+
+    } catch (error) {
+        res.status(400).send(error.message);
+    }
+}
+
 const updateImageForQuizTemplate = async (req, res, next) => {
     try {
 
@@ -120,5 +151,6 @@ module.exports = {
     uploadImageForStudent,
     updateImageForQuizTemplate,
     deleteImage,
-    uploadImage
+    uploadImage,
+    uploadImageForTeacher
 }

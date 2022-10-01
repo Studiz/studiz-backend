@@ -5,7 +5,8 @@ const {
     deleteQuiz,
     getQuizById,
     joinQuiz,
-    getQuizByIdForStudent
+    getQuizByIdForStudent,
+    deletePinCode
 } = require('../controllers/quizController');
 
 const router = express.Router();
@@ -16,6 +17,7 @@ router.delete('/delete/quiz/:id', deleteQuiz);
 router.get('/get/quiz/:id', getQuizById);
 router.patch('/joinQuiz/:pinCode', joinQuiz);
 router.get('/get/quizForStudent/:id', getQuizByIdForStudent);
+router.delete('/quiz/deletePinCode/:quizId', deletePinCode);
 
 module.exports = {
     routes: router
