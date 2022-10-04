@@ -148,6 +148,56 @@ const deleteStudent = async (req, res, next) => {
     }
 }
 
+const buyItem = async (req, res, next) => {
+    try {
+        const studentId = req.body.studentId;
+        const itemId = req.body.itemId;
+        const totalItem = req.body.totalItem
+        const student = await firestore.collection('students').doc(studentId);
+        const item = await firestore.collection('items').doc(itemId);
+        const getStudent = await student.get();
+        const dataStudent = getStudent.data();
+        const getItem = await item.get();
+        var dataItem = getItem.data();
+        if(!dataStudent) {
+            return res.json({
+                "errText" : "Student id invalid",
+                "errCode" : 400
+            })
+        } else if (!dataItem){
+            return res.json({
+                "errText" : "Item id invalid",
+                "errCode" : 400
+            })
+        }
+
+        var studentItems = dataStudent.items
+        dataItem.id = itemId
+
+        if(studentItems) {
+            var isDupplicate = false  
+            studentItems.forEach(data => {
+                if (data.id === itemId) {
+                   data.total = data.total + totalItem
+                   isDupplicate = true
+                }
+            })
+            if(isDupplicate ===  false) {
+                dataItem.total = totalItem
+                studentItems.push(dataItem)
+            }
+            await student.update(dataStudent)
+
+        }else {
+            dataItem.total = totalItem
+            dataStudent.items = [dataItem]
+            await student.update(dataStudent)
+        }
+        res.status(200).send("Student buy item success");
+    } catch (error) {
+        res.status(400).send(error.message);
+    }
+}
 
 
 module.exports = {
@@ -157,5 +207,5 @@ module.exports = {
     getStudent,
     updateStudent,
     deleteStudent,
-
+    buyItem
 }

@@ -6,6 +6,7 @@ const {
     getStudent,
     updateStudent,
     deleteStudent,
+    buyItem,
 } = require('../controllers/studentController');
 
 const router = express.Router();
@@ -16,6 +17,7 @@ router.get('/students', getAllStudents);
 router.get('/student/:id', getStudent);
 router.put('/update/student/:id', updateStudent);
 router.delete('/student/:id', deleteStudent);
+router.put('/buy/item', buyItem);
 
 
 module.exports = {
