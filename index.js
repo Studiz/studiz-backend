@@ -95,7 +95,6 @@ io.on('connection', async (socket) => {
             getMembers(data.quizId).splice(index, 1)
             io.to(data.quizId).emit("joined", getMembers(data.quizId));
             socket.leave(data.quizId)
-
         }
     })
 

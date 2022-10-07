@@ -190,10 +190,14 @@ const joinQuiz = async (req, res, next) => {
             let getQuiz = await quizById.get()
             quiz = getQuiz.data()
 
-            res.status(200).json({
-                "quizId": quizIdFromPinCode,
-                "quizDetails": quiz
-            });
+            if (quiz.isLive) {
+                res.status(200).json({
+                    "quizId": quizIdFromPinCode,
+                    "quizDetails": quiz
+                });
+            } else {
+                res.status(400).send('Quiz has ended.');
+            }
 
         }
 

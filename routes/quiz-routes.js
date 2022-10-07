@@ -15,7 +15,7 @@ router.post('/create/quiz', createQuiz);
 router.put('/update/quiz/:id', updateQuiz);
 router.delete('/delete/quiz/:id', deleteQuiz);
 router.get('/get/quiz/:id', getQuizById);
-router.patch('/joinQuiz/:pinCode', joinQuiz);
+router.post('/joinQuiz/:pinCode', joinQuiz);
 router.get('/get/quizForStudent/:id', getQuizByIdForStudent);
 router.delete('/quiz/deletePinCode/:quizId', deletePinCode);
 
