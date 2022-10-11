@@ -46,6 +46,12 @@ const io = socketIO(server, {
 
 const rooms = new Map();
 
+const structuredClone = (objectToClone) => {
+    const stringified = JSON.stringify(objectToClone);
+    const parsed = JSON.parse(stringified);
+    return parsed;
+}
+
 const getMembers = (quizId) => {
     if (quizId) {
         return rooms.get(quizId).members ? rooms.get(quizId).members : []
@@ -54,8 +60,34 @@ const getMembers = (quizId) => {
     }
 }
 
+const getMemberData = (quizId, memberId) => {
+    return getMembers(quizId).find((member) => member.memberId === memberId)
+}
+
 const getRoom = (quizId) => {
     return rooms.get(quizId)
+}
+
+const getQustionsForStudent = (quizId, index) => {
+    let qustion = structuredClone(getRoom(quizId).quizData.questions[index])
+    qustion.answer.options.map((option) => {
+        delete option.isCorrect
+    })
+    return qustion
+}
+
+const getCurrentQuestionIndex = (quizId) => {
+    return getRoom(quizId).currentQuestion ? getRoom(quizId).currentQuestion : 0
+}
+
+const nextQuestion = (quizId) => {
+    getRoom(quizId).currentQuestion++
+    // getRoom(quizId).quizData.questions[getCurrentQuestionIndex(quizId)]  
+    return getQustionsForStudent(quizId, getCurrentQuestionIndex(quizId))
+}
+
+const getCurrentQuestionData = (quizId) => {
+    return getRoom(quizId).quizData.questions[getCurrentQuestionIndex(quizId)]
 }
 
 io.on('connection', async (socket) => {
@@ -66,6 +98,7 @@ io.on('connection', async (socket) => {
         let defaultData = {
             members: new Array(),
             quizData: data.quizData,
+            currentQuestion: 0,
             game: {},
             leaderboard: {}
         }
@@ -98,10 +131,45 @@ io.on('connection', async (socket) => {
         }
     })
 
+    socket.on('start-game', (data) => {
+        let currentQuestion = getCurrentQuestionIndex(data.quizId)
+        io.to(data.quizId).emit("move-to-quiz", getQustionsForStudent(data.quizId, currentQuestion));
+    })
+
     socket.on('end-game', (data) => {
         io.to(data.quizId).emit("move-to-home");
         socket.leave(data.quizId)
         rooms.delete(data.quizId)
+    })
+
+    socket.on('select-choice', (data) => {
+        let questionData = structuredClone(getCurrentQuestionData(data.quizId))
+        questionData.studentAnswer = questionData.answer.options[data.index].isCorrect
+        console.log(data);
+        let score = 1000 * (1 - (data.timeAnswer / questionData.time) * (1 / 2))
+        questionData.score = questionData.studentAnswer ? score : 0
+        getMemberData(data.quizId, data.memberId).quizData.push(questionData)
+
+        console.log(getMemberData(data.quizId, data.memberId));
+
+        let answerIndex = questionData.answer.options.findIndex((option) => {
+            return option.isCorrect === true
+        })
+
+        io.to(data.quizId).emit("check-answer", answerIndex);
+    })
+
+    socket.on('send-leader-board', (data) => {
+        io.to(data.quizId).emit("show-leader-board", {
+            name: 1
+        });
+    })
+
+    socket.on('send-next-question', (data) => {
+        // getCurrentQuestionIndex(data.quizId) = getCurrentQuestionIndex(data.quizId) + 1
+        // console.log(getCurrentQuestionIndex(data.quizId));
+        // nextQuestion(data.quizId)
+        io.to(data.quizId).emit("show-next-question", nextQuestion(data.quizId));
     })
 
     socket.on("disconnect", () => {
