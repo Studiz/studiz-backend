@@ -80,6 +80,10 @@ const getCurrentQuestionIndex = (quizId) => {
     return getRoom(quizId).currentQuestion ? getRoom(quizId).currentQuestion : 0
 }
 
+const hasNextQuestion = (quizId) => {
+    return getCurrentQuestionIndex(quizId) < getRoom(quizId).quizData.questions.length - 1
+}
+
 const nextQuestion = (quizId) => {
     getRoom(quizId).currentQuestion++
     // getRoom(quizId).quizData.questions[getCurrentQuestionIndex(quizId)]  
@@ -145,13 +149,11 @@ io.on('connection', async (socket) => {
     socket.on('select-choice', (data) => {
         let questionData = structuredClone(getCurrentQuestionData(data.quizId))
         questionData.studentAnswer = questionData.answer.options[data.index].isCorrect
-        console.log(data);
         let score = 1000 * (1 - (data.timeAnswer / questionData.time) * (1 / 2))
         questionData.score = questionData.studentAnswer ? score : 0
         getMemberData(data.quizId, data.memberId).quizData.push(questionData)
-
-        console.log(getMemberData(data.quizId, data.memberId));
-
+        getMemberData(data.quizId, data.memberId).totalScore += questionData.score
+       
         let answerIndex = questionData.answer.options.findIndex((option) => {
             return option.isCorrect === true
         })
@@ -159,17 +161,35 @@ io.on('connection', async (socket) => {
         io.to(data.quizId).emit("check-answer", answerIndex);
     })
 
-    socket.on('send-leader-board', (data) => {
-        io.to(data.quizId).emit("show-leader-board", {
-            name: 1
-        });
+    socket.on('send-leaderboard', (data) => {
+        let leaderboard = getMembers(data.quizId).map((member) => {
+            return {
+                displayName: member.user.displayName,
+                image: member.user.imageUrl,
+                score: member.totalScore
+            }
+        })
+        console.log(leaderboard);
+        io.to(data.quizId).emit("show-leaderboard", leaderboard);
     })
 
     socket.on('send-next-question', (data) => {
         // getCurrentQuestionIndex(data.quizId) = getCurrentQuestionIndex(data.quizId) + 1
         // console.log(getCurrentQuestionIndex(data.quizId));
         // nextQuestion(data.quizId)
-        io.to(data.quizId).emit("show-next-question", nextQuestion(data.quizId));
+        console.log(hasNextQuestion(data.quizId));
+        if (hasNextQuestion(data.quizId)) {
+            io.to(data.quizId).emit("show-next-question", nextQuestion(data.quizId));
+        } else {
+            let leaderboard = getMembers(data.quizId).map((member) => {
+                return {
+                    displayName: member.user.displayName,
+                    image: member.user.imageUrl,
+                    score: member.totalScore
+                }
+            })
+            io.to(data.quizId).emit("show-leaderboard-summary", leaderboard);
+        }
     })
 
     socket.on("disconnect", () => {
