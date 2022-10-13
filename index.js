@@ -13,7 +13,7 @@ const quizRoutes = require('./routes/quiz-routes');
 const storeRoutes = require('./routes/item-routes');
 const socketIO = require('socket.io')
 const fileupload = require('express-fileupload');
-const firebase = require('../db');
+const firebase = require('./db');
 const firestore = firebase.firestore();
 
 const app = express();
