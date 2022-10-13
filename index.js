@@ -13,6 +13,8 @@ const quizRoutes = require('./routes/quiz-routes');
 const storeRoutes = require('./routes/item-routes');
 const socketIO = require('socket.io')
 const fileupload = require('express-fileupload');
+const firebase = require('../db');
+const firestore = firebase.firestore();
 
 const app = express();
 
@@ -92,6 +94,13 @@ const nextQuestion = (quizId) => {
 
 const getCurrentQuestionData = (quizId) => {
     return getRoom(quizId).quizData.questions[getCurrentQuestionIndex(quizId)]
+}
+
+const saveQuizHistory = async (data, quizId) => {
+    data.createAt = new Date()
+    data.quizId = quizId
+    await firestore.collection('quizHistories').add(data)
+    return data
 }
 
 io.on('connection', async (socket) => {

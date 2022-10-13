@@ -1,7 +1,6 @@
 'use strict';
 
 const firebase = require('../db');
-const Classroom = require('../models/classroom');
 const firestore = firebase.firestore();
 const jwtDecode = require('jwt-decode');
 const middleware = require('../middleware');
@@ -72,6 +71,12 @@ const deletePinCode = async (req, res, next) => {
         const classroomById = await allClassroom.doc(id)
         var getClass = await classroomById.get()
         var classroom = getClass.data()
+        if(!classroom) {
+            return res.json({
+                "errText" : "Classroom id invalid",
+                "errCode" : 400
+            })
+        } 
         delete classroom['pinCode'];
         console.log(classroom);
         await classroomById.set(classroom);
