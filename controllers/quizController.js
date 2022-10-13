@@ -46,6 +46,8 @@ const createQuiz = async (req, res, next) => {
             isLive: true
         }
 
+        quizData.quizTemplate.totalQuestion = quizData.quizTemplate.questions.length
+
         let quiz = await firestore.collection('quizes').add(quizData);
         quizData.id = await quiz.id
         if (data.classroomId) {
@@ -54,7 +56,6 @@ const createQuiz = async (req, res, next) => {
             const classroom = await firestore.collection('classrooms').doc(classroomId);
             const getClass = await classroom.get();
             const classroomData = getClass.data();
-            // console.log(classroomData);
             const studentInClass = classroomData.students
             studentInClass.forEach(doc => {
 

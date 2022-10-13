@@ -149,11 +149,11 @@ io.on('connection', async (socket) => {
     socket.on('select-choice', (data) => {
         let questionData = structuredClone(getCurrentQuestionData(data.quizId))
         questionData.studentAnswer = questionData.answer.options[data.index].isCorrect
-        let score = 1000 * (1 - (data.timeAnswer / questionData.time) * (1 / 2))
+        let score = Math.round(1000 * (1 - (data.timeAnswer / questionData.time) * (1 / 2)))
         questionData.score = questionData.studentAnswer ? score : 0
         getMemberData(data.quizId, data.memberId).quizData.push(questionData)
         getMemberData(data.quizId, data.memberId).totalScore += questionData.score
-       
+
         let answerIndex = questionData.answer.options.findIndex((option) => {
             return option.isCorrect === true
         })
