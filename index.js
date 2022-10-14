@@ -75,6 +75,7 @@ const getQustionsForStudent = (quizId, index) => {
     qustion.answer.options.map((option) => {
         delete option.isCorrect
     })
+    qustion.currentQuestion = index + 1
     return qustion
 }
 
@@ -178,7 +179,6 @@ io.on('connection', async (socket) => {
                 score: member.totalScore
             }
         })
-        console.log(leaderboard);
         io.to(data.quizId).emit("show-leaderboard", leaderboard);
     })
 
@@ -186,7 +186,6 @@ io.on('connection', async (socket) => {
         // getCurrentQuestionIndex(data.quizId) = getCurrentQuestionIndex(data.quizId) + 1
         // console.log(getCurrentQuestionIndex(data.quizId));
         // nextQuestion(data.quizId)
-        console.log(hasNextQuestion(data.quizId));
         if (hasNextQuestion(data.quizId)) {
             io.to(data.quizId).emit("show-next-question", nextQuestion(data.quizId));
         } else {
