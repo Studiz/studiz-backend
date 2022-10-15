@@ -6,19 +6,44 @@ const Teacher = require('../models/teacher');
 const admin = require('../config/firebase-config');
 const firebaseAuth = require('firebase-auth')
 const firestore = firebase.firestore();
-const { getAuth } = require('firebase-admin/auth');
+const {
+    getAuth
+} = require('firebase-admin/auth');
 
 
 const checkDuplicateEmail = async (req, res, next) => {
     try {
-   
+        let duplicateEmail = false
+        const students = await firestore.collection('students');
+        const teachers = await firestore.collection('teachers');
+        const teachersData = await teachers.get();
+        const studentsData = await students.get();
         const email = req.body.email
         getAuth()
             .getUserByEmail(email)
             .then((userRecord) => {
-               if(userRecord){
-                res.status(400).send('email-already-in-use');
-               }
+                if (userRecord) {
+                    if (userRecord.emailVerified) {
+
+                        teachersData.forEach(doc => {
+                            if (doc.data().email == req.body.email) {
+                                duplicateEmail = true
+                            }
+                        });
+                        studentsData.forEach(doc => {
+                            if (doc.data().email == req.body.email) {
+                                duplicateEmail = true
+                            }
+                        });
+                        if (duplicateEmail) {
+                            res.status(400).send('email-already-in-use');
+                        } else {
+                            res.status(404).send('user-not-found');
+                        }
+                    } else {
+                        res.status(400).send('email-already-in-use');
+                    }
+                }
             })
             .catch((error) => {
                 res.status(200).send('email-available');
