@@ -13,7 +13,7 @@ const signUpTeacherWithEmail = async (req, res, next) => {
             "email": decodeToken.email,
             "firstName": decodeToken.fname,
             "lastName": decodeToken.lname,
-            "displayName": "",
+            "displayName": decodeToken.fname,
             "imageUrl": "",
             "classrooms": [],
             "role": "TEACHER",
@@ -41,10 +41,10 @@ const signUpTeacherWithGoogle = async (req, res, next) => {
             "email": decodeToken.email,
             "firstName": decodeToken.fname,
             "lastName": decodeToken.lname,
-            "displayName": "",
+            "displayName": decodeToken.fname,
             "imageUrl": decodeToken.imageUrl,
             "classrooms": [],
-            "role": "TEACHER", 
+            "role": "TEACHER",
             "uid": decodeToken.uid
         }
         firestore.collection('teachers').doc().set(teacherData);
@@ -60,9 +60,9 @@ const getTeacherById = async (req, res, next) => {
         const id = req.params.id;
         const teacher = await firestore.collection('teachers').doc(id);
         const data = await teacher.get();
-        if(!data.exists) {
+        if (!data.exists) {
             res.status(404).send('Teacher with the given ID not found');
-        }else {
+        } else {
             res.send(data.data());
         }
     } catch (error) {
@@ -90,12 +90,12 @@ const updateTeacher = async (req, res, next) => {
             const teacherInclass = classroomData.teacher
             // studentInclass.forEach(data => {
             //     if (data.id == id) {
-                teacherInclass.displayName = body.displayName
-                teacherInclass.email = body.email
-                teacherInclass.firstName = body.firstName
-                teacherInclass.imageUrl = body.imageUrl
-                teacherInclass.lastName = body.lastName
-                teacherInclass.uid = body.uid
+            teacherInclass.displayName = body.displayName
+            teacherInclass.email = body.email
+            teacherInclass.firstName = body.firstName
+            teacherInclass.imageUrl = body.imageUrl
+            teacherInclass.lastName = body.lastName
+            teacherInclass.uid = body.uid
             //     }
             // })
             await classroom.update(classroomData);

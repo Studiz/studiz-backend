@@ -15,7 +15,7 @@ const signUpStudenWithEmail = async (req, res, next) => {
             "email": decodeToken.email,
             "firstName": decodeToken.fname,
             "lastName": decodeToken.lname,
-            "displayName": "",
+            "displayName": decodeToken.fname,
             "imageUrl": "",
             "classrooms": [],
             "role": "STUDENT",
@@ -44,7 +44,7 @@ const signUpStudenWithGoogle = async (req, res, next) => {
             "email": decodeToken.email,
             "firstName": decodeToken.fname,
             "lastName": decodeToken.lname,
-            "displayName": "",
+            "displayName": decodeToken.fname,
             "imageUrl": decodeToken.imageUrl,
             "classrooms": [],
             "role": "STUDENT",
@@ -159,36 +159,36 @@ const buyItem = async (req, res, next) => {
         const dataStudent = getStudent.data();
         const getItem = await item.get();
         var dataItem = getItem.data();
-        if(!dataStudent) {
+        if (!dataStudent) {
             return res.json({
-                "errText" : "Student id invalid",
-                "errCode" : 400
+                "errText": "Student id invalid",
+                "errCode": 400
             })
-        } else if (!dataItem){
+        } else if (!dataItem) {
             return res.json({
-                "errText" : "Item id invalid",
-                "errCode" : 400
+                "errText": "Item id invalid",
+                "errCode": 400
             })
         }
 
         var studentItems = dataStudent.items
         dataItem.id = itemId
 
-        if(studentItems) {
-            var isDupplicate = false  
+        if (studentItems) {
+            var isDupplicate = false
             studentItems.forEach(data => {
                 if (data.id === itemId) {
-                   data.total = data.total + totalItem
-                   isDupplicate = true
+                    data.total = data.total + totalItem
+                    isDupplicate = true
                 }
             })
-            if(isDupplicate ===  false) {
+            if (isDupplicate === false) {
                 dataItem.total = totalItem
                 studentItems.push(dataItem)
             }
             await student.update(dataStudent)
 
-        }else {
+        } else {
             dataItem.total = totalItem
             dataStudent.items = [dataItem]
             await student.update(dataStudent)
