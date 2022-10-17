@@ -88,16 +88,37 @@ const updateTeacher = async (req, res, next) => {
             const getClassroom = await classroom.get()
             const classroomData = getClassroom.data()
             const teacherInclass = classroomData.teacher
-            // studentInclass.forEach(data => {
-            //     if (data.id == id) {
+
+            if (classroomData.students) {
+                const studentsInclass = classroomData.students
+                studentsInclass.forEach(async data => {
+                    const student = await firestore.collection('students').doc(data.id);
+                    const getStudent = await student.get()
+                    const studentData = getStudent.data()
+                    if (studentData) {
+                        const classroomInStudent = studentData.classrooms
+                        for (let i = 0; i < classroomInStudent.length; i++) {
+                            var classroomId = classroomInStudent[i].id;
+                            if (classroomId == classroomid) {
+                                classroomInStudent[i].teacher.displayName = body.displayName
+                                classroomInStudent[i].teacher.email = body.email
+                                classroomInStudent[i].teacher.firstName = body.firstName
+                                classroomInStudent[i].teacher.imageUrl = body.imageUrl
+                                classroomInStudent[i].teacher.lastName = body.lastName
+                            }
+                        }
+                        await student.update(studentData);
+                    }
+                })
+            }
+
             teacherInclass.displayName = body.displayName
             teacherInclass.email = body.email
             teacherInclass.firstName = body.firstName
             teacherInclass.imageUrl = body.imageUrl
             teacherInclass.lastName = body.lastName
             teacherInclass.uid = body.uid
-            //     }
-            // })
+
             await classroom.update(classroomData);
         }
 

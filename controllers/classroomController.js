@@ -11,6 +11,8 @@ const createClassroom = async (req, res, next) => {
         const teacherById = await firestore.collection('teachers').doc(data.teacherId);
         const dataTeacherById = await teacherById.get();
         var dataTeacher = dataTeacherById.data()
+        dataTeacher.id = data.teacherId
+        console.log(dataTeacher);
         var classrooms = dataTeacherById.data().classrooms
         delete dataTeacher.classrooms
         var id;
@@ -265,6 +267,21 @@ const updateClassroom = async (req, res, next) => {
             await student.update(studentData);
         }
 
+        const teacher = await firestore.collection('teachers').doc(dataClassroom.teacher.id);
+        const getTeacher = await teacher.get()
+        const teacherData = getTeacher.data()
+        const classroomInstd = teacherData.classrooms
+        classroomInstd.forEach(data => {
+            if (data.id == id) {
+                    data.id = id,
+                    data.name = body.name,
+                    data.description = body.description,
+                    data.color = body.color,
+                    data.relevantSubjects = body.relevantSubjects
+            }
+        })
+        await teacher.update(teacherData);
+
         res.send(dataClassroom)
     } catch (error) {
         res.status(400).send(error.message);
@@ -333,13 +350,13 @@ const kickStudntInClassroom = async (req, res, next) => {
     }
 }
 
-const addHistoryQuizInClassroom = async (req, res, next) => {
-    try {
-        const allClassroom = firestore.collection('classrooms');
-    }catch (error) {
-        res.status(400).send(error.message);
-    }
-}
+// const addHistoryQuizInClassroom = async (req, res, next) => {
+//     try {
+//         const allClassroom = firestore.collection('classrooms');
+//     }catch (error) {
+//         res.status(400).send(error.message);
+//     }
+// }
 
 module.exports = {
     createClassroom,
