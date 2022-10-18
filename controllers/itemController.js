@@ -51,16 +51,16 @@ const getAllItem = async (req, res, next) => {
         const data = await item.get();
         const itemArray = []
         if (data.empty) {
-            res.status(404).send('No student record found');
+            res.status(404).send('No item record found');
         } else {
             data.forEach(doc => {
                 const docData = doc.data()
-                var x = {
+                var itemData = {
                     id : doc.id,
                     itemData : docData
                 }
                 
-                itemArray.push(x);
+                itemArray.push(itemData);
             });
             res.send(itemArray);
         }

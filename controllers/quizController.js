@@ -107,30 +107,7 @@ const getQuizById = async (req, res, next) => {
     try {
         const id = req.params.id;
         const quiz = await firestore.collection('quizes').doc(id);
-        const data = await quiz.get();
-        // var mailOptions = {
-        //     from: 'studiz.games@gmail.com',
-        //     to: 'apisit.top@mail.kmutt.ac.th',
-        //     subject: 'Sending Email using Node.js',
-        //     text: 'That was easy!'
-        // };
-        // transporter.sendMail(mailOptions, function (error, info) {
-        //     if (error) {
-        //         console.log(error);
-        //     } else {
-        //         console.log('Email sent: ' + info.response);
-        //     }
-        // });
-
-        // const msg = {
-        //     to: 'apisit7985@gmail.com',
-        //     from: 'traitawat.25957@mail.kmutt.ac.th',
-        //     templateId: 'd-a497b6ba8e0945599acf546010466e00',
-        //     dynamicTemplateData: {
-
-        //     },
-        //   };
-        //   sgMail.send(msg);
+        const data = await quiz.get()
 
         if (!data.exists) {
             res.status(404).send('quiz with the given ID not found');
