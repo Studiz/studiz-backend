@@ -49,7 +49,7 @@ const getQuizTemplateByTeacherId = async (req, res, next) => {
         const data = await quizTemplates.get();
         const quizTemplatesArray = []
         data.forEach(doc => {
-            if (doc.data().teacherId === teacherId) {
+            if (doc.data().teacher.teacherId === teacherId) {
                 let quizTemplate = doc.data()
                 quizTemplate.id = doc.id
                 quizTemplatesArray.push(quizTemplate);

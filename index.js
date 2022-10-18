@@ -56,7 +56,7 @@ const structuredClone = (objectToClone) => {
 
 const getMembers = (quizId) => {
     if (quizId) {
-        return rooms.get(quizId).members ? rooms.get(quizId).members : []
+        return rooms.get(quizId)?.members ? rooms.get(quizId).members : []
     } else {
         return []
     }
