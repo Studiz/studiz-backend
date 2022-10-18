@@ -178,6 +178,7 @@ io.on('connection', async (socket) => {
             return {
                 displayName: member.user.displayName,
                 image: member.user.imageUrl,
+                scoreInRound: member.quizData[getCurrentQuestionIndex(data.quizId)].score,
                 score: member.totalScore
             }
         })
