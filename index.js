@@ -160,6 +160,7 @@ io.on('connection', async (socket) => {
 
     socket.on('select-choice', (data) => {
         let questionData = structuredClone(getCurrentQuestionData(data.quizId))
+        questionData.indexStudentAnswer = data.index
         questionData.studentAnswer = questionData.answer.options[data.index].isCorrect
         let score = Math.round(1000 * (1 - (data.timeAnswer / questionData.time) * (1 / 2)))
         questionData.score = questionData.studentAnswer ? score : 0
@@ -177,8 +178,9 @@ io.on('connection', async (socket) => {
         let leaderboard = getMembers(data.quizId).map((member) => {
             return {
                 displayName: member.user.displayName,
+                role: member.user.role,
                 image: member.user.imageUrl,
-                scoreInRound: member.quizData[getCurrentQuestionIndex(data.quizId)].score,
+                scoreInRound: member.quizData[getCurrentQuestionIndex(data.quizId)]?.score,
                 score: member.totalScore
             }
         })
@@ -195,11 +197,27 @@ io.on('connection', async (socket) => {
             let leaderboard = getMembers(data.quizId).map((member) => {
                 return {
                     displayName: member.user.displayName,
+                    role: member.user.role,
                     image: member.user.imageUrl,
                     score: member.totalScore
                 }
             })
-            io.to(data.quizId).emit("show-leaderboard-summary", leaderboard);
+            
+            //Sort leaderboard
+            getRoom(data.quizId).leaderboard.members = leaderboard.sort((member1, member2) => {
+                return member2.score - member1.score
+            })
+            //Set the winner
+            getRoom(data.quizId).leaderboard.winner = getRoom(data.quizId).leaderboard.members[0]
+
+            //Save quiz history
+            saveQuizHistory(rooms.get(data.quizId), data.quizId).then((data) => {
+                io.to(data.quizId).emit("show-quiz-summary", rooms.get(data.quizId));
+                rooms.delete(data.quizId)
+                socket.leave(data.quizId)
+            })
+            
+            
         }
     })
 
