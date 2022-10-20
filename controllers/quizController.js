@@ -51,10 +51,10 @@ const createQuiz = async (req, res, next) => {
 
         let quiz = await firestore.collection('quizes').add(quizData);
         quizData.id = await quiz.id
-        if (data.classroomId) {
-            var classroomId = data.classroomId
-            console.log(classroomId);
-            const classroom = await firestore.collection('classrooms').doc(classroomId);
+        if (data.classRoomId) {
+            var classRoomId = data.classRoomId
+            console.log(classRoomId);
+            const classroom = await firestore.collection('classrooms').doc(classRoomId);
             const getClass = await classroom.get();
             const classroomData = getClass.data();
             const studentInClass = classroomData.students
