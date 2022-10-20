@@ -127,7 +127,15 @@ const saveQuizHistory = async (data, quizId) => {
 io.on('connection', async (socket) => {
     console.log('client socket connected')
 
+    socket.on("join-classrooms", (data) => {
+        socket.join(data)
+    })
+
     socket.on("init-game", (data) => {
+        let notificationData = Object.assign({}, data.quizData)
+        delete notificationData.questions
+        io.to(data.quizData.classRoomId).emit("notification-quiz", notificationData);
+
         socket.join(data.quizId)
         let defaultData = {
             members: new Array(),
