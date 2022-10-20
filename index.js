@@ -103,6 +103,24 @@ const saveQuizHistory = async (data, quizId) => {
     data.createAt = new Date()
     data.quizId = quizId
     await firestore.collection('quizHistories').add(data)
+    if(data.classroomId){
+    const classroom = await firestore.collection('classrooms').doc(data.classroomId);
+    const getClassroom = await classroom.get();
+    const classroomData = await getClassroom.data()
+    var quizData = data.quizData
+    delete quizData.quistion
+    var historyInClass = {
+        "quizId": data.quizId,
+        "quizData": quizData,
+        "crateAt ": data.createAt
+    }
+
+    if (classroomData.quizHistories) {
+        classroomData.quizHistories.push(historyInClass)
+    } else classroomData.quizHistories = [historyInClass]
+
+    await classroom.update(classroomData);
+}
     return data
 }
 
@@ -202,7 +220,7 @@ io.on('connection', async (socket) => {
                     score: member.totalScore
                 }
             })
-            
+
             //Sort leaderboard
             getRoom(data.quizId).leaderboard.members = leaderboard.sort((member1, member2) => {
                 return member2.score - member1.score
@@ -216,8 +234,8 @@ io.on('connection', async (socket) => {
                 rooms.delete(data.quizId)
                 socket.leave(data.quizId)
             })
-            
-            
+
+
         }
     })
 

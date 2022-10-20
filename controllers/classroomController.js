@@ -7,6 +7,14 @@ const middleware = require('../middleware');
 
 const createClassroom = async (req, res, next) => {
     try {
+        try{
+            var decodeToken = jwtDecode(req.headers.token);
+            } catch (error) {
+               return res.status(401).json({
+                    "errCode" : 401,
+                    "errText" : "Unauthorized"
+                });
+            }
         const data = req.body;
         const teacherById = await firestore.collection('teachers').doc(data.teacherId);
         const dataTeacherById = await teacherById.get();
@@ -74,7 +82,7 @@ const deletePinCode = async (req, res, next) => {
         var getClass = await classroomById.get()
         var classroom = getClass.data()
         if(!classroom) {
-            return res.json({
+            return res.status(400).json({
                 "errText" : "Classroom id invalid",
                 "errCode" : 400
             })
@@ -127,6 +135,14 @@ const getStudentByClassroomId = async (req, res, next) => {
 
 const joinClassroom = async (req, res, next) => {
     try {
+        try{
+            var decodeToken = jwtDecode(req.headers.token);
+            } catch (error) {
+               return res.status(401).json({
+                    "errCode" : 401,
+                    "errText" : "Unauthorized"
+                });
+            }
         const id = req.params.studentId;
         const allClassroom = firestore.collection('classrooms');
         console.log(req.params.pinCode);
@@ -191,6 +207,7 @@ const joinClassroom = async (req, res, next) => {
                 res.send('Student record updated successfuly');
             } else res.send('Student is alrady in classroom');
         }
+    
 
     } catch (error) {
         res.status(400).send(error.message);
@@ -315,8 +332,15 @@ function checkDupplicateStudent(students, id) {
 
 const kickStudntInClassroom = async (req, res, next) => {
     try {
-        var decodeToken = jwtDecode(req.headers.token);
-        if (decodeToken.role === "TEACHER") {
+       
+        try{
+            var decodeToken = jwtDecode(req.headers.token);
+            } catch (error) {
+               return res.status(401).json({
+                    "errCode" : 401,
+                    "errText" : "Unauthorized"
+                });
+            }
             const allClassroom = firestore.collection('classrooms');
             const id = req.params.classroomId;
             const studentId = req.params.studentId;
@@ -342,9 +366,7 @@ const kickStudntInClassroom = async (req, res, next) => {
             })
 
             res.send('Student left classroom successfuly');
-        } else {
-            res.send('Token invalid')
-        }
+        
     } catch (error) {
         res.status(400).send(error.message);
     }

@@ -160,12 +160,12 @@ const buyItem = async (req, res, next) => {
         const getItem = await item.get();
         var dataItem = getItem.data();
         if (!dataStudent) {
-            return res.json({
+            return res.status(400).json({
                 "errText": "Student id invalid",
                 "errCode": 400
             })
         } else if (!dataItem) {
-            return res.json({
+            return res.status(400).json({
                 "errText": "Item id invalid",
                 "errCode": 400
             })

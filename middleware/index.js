@@ -30,8 +30,8 @@ class Middleware {
 			if (decodeValue) {
 				return decodeValue;
 			}
-			return res.json({
-				message: 'Un authorize'
+			return res.status(401).json({
+				message: 'Unauthorized'
 			});
 		} catch (e) {
 			return res.json({
