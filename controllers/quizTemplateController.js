@@ -4,6 +4,7 @@ const firebase = require('../db');
 const firestore = firebase.firestore();
 const middleware = require('../middleware');
 const jwtDecode = require('jwt-decode');
+const dayjs = require('dayjs')
 
 const createQuizTemplate = async (req, res, next) => {
     try {
@@ -17,7 +18,7 @@ const createQuizTemplate = async (req, res, next) => {
             }
         const data = req.body
         var quizData = data
-        quizData.createAt = new Date()
+        quizData.createAt = dayjs().format('DD/MM/YYYY, HH:mm:ss')
         await firestore.collection('quizTemplates').add(quizData).then((res) => {
             data.id = res.id
         });

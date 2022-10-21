@@ -9,6 +9,7 @@ const {
 } = require('socket.io');
 sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 const jwtDecode = require('jwt-decode');
+const dayjs = require('dayjs')
 
 var transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
@@ -57,12 +58,12 @@ const createQuiz = async (req, res, next) => {
         }
 
         quizData.quizTemplate.totalQuestion = quizData.quizTemplate.questions.length
-
+        quizData.startAt = dayjs().format('DD/MM/YYYY, HH:mm:ss')
+        
         let quiz = await firestore.collection('quizes').add(quizData);
         quizData.id = await quiz.id
         if (data.classRoomId) {
             var classRoomId = data.classRoomId
-            console.log(classRoomId);
             const classroom = await firestore.collection('classrooms').doc(classRoomId);
             const getClass = await classroom.get();
             const classroomData = getClass.data();

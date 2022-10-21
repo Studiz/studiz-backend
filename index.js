@@ -133,6 +133,7 @@ io.on('connection', async (socket) => {
 
     socket.on("init-game", (data) => {
         let notificationData = Object.assign({}, data.quizData)
+        notificationData.quizId = data.quizId
         delete notificationData.questions
         io.to(data.quizData.classRoomId).emit("notification-quiz", notificationData);
 
