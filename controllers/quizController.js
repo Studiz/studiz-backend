@@ -8,6 +8,7 @@ const {
     Socket
 } = require('socket.io');
 sgMail.setApiKey(process.env.SENDGRID_API_KEY)
+const jwtDecode = require('jwt-decode');
 
 var transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
@@ -24,6 +25,14 @@ var transporter = nodemailer.createTransport({
 const createQuiz = async (req, res, next) => {
 
     try {
+        try{
+            var decodeToken = jwtDecode(req.headers.token);
+            } catch (error) {
+               return res.status(401).json({
+                    "errCode" : 401,
+                    "errText" : "Unauthorized"
+                });
+            }
         const data = req.body
 
         var pinCode = Math.floor(100000 + Math.random() * 900000)

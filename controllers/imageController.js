@@ -6,10 +6,18 @@ require("firebase/storage");
 const storage = firebase.storage().ref();
 global.XMLHttpRequest = require("xhr2");
 const firestore = firebase.firestore();
+const jwtDecode = require('jwt-decode');
 
 const uploadImageForStudent = async (req, res, next) => {
     try {
-
+        try{
+            var decodeToken = jwtDecode(req.headers.token);
+            } catch (error) {
+               return res.status(401).json({
+                    "errCode" : 401,
+                    "errText" : "Unauthorized"
+                });
+            }
         const file = req.files.studizImg;
         console.log(file);
         const timestamp = Date.now()
@@ -45,7 +53,14 @@ const uploadImageForStudent = async (req, res, next) => {
 
 const uploadImageForTeacher = async (req, res, next) => {
     try {
-
+        try{
+            var decodeToken = jwtDecode(req.headers.token);
+            } catch (error) {
+               return res.status(401).json({
+                    "errCode" : 401,
+                    "errText" : "Unauthorized"
+                });
+            }
         const file = req.files.studizImg;
         console.log(file);
         const timestamp = Date.now()
@@ -76,7 +91,14 @@ const uploadImageForTeacher = async (req, res, next) => {
 
 const updateImageForQuizTemplate = async (req, res, next) => {
     try {
-
+        try{
+            var decodeToken = jwtDecode(req.headers.token);
+            } catch (error) {
+               return res.status(401).json({
+                    "errCode" : 401,
+                    "errText" : "Unauthorized"
+                });
+            }
         const file = req.files.studizImg;
         console.log(file);
         const timestamp = Date.now()

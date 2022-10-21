@@ -3,9 +3,18 @@
 const firebase = require('../db');
 const firestore = firebase.firestore();
 const middleware = require('../middleware');
+const jwtDecode = require('jwt-decode');
 
 const createQuizTemplate = async (req, res, next) => {
     try {
+        try{
+            var decodeToken = jwtDecode(req.headers.token);
+            } catch (error) {
+               return res.status(401).json({
+                    "errCode" : 401,
+                    "errText" : "Unauthorized"
+                });
+            }
         const data = req.body
         var quizData = data
         quizData.createAt = new Date()
@@ -22,6 +31,14 @@ const createQuizTemplate = async (req, res, next) => {
 
 const updateQuizTemplate = async (req, res, next) => {
     try {
+        try{
+            var decodeToken = jwtDecode(req.headers.token);
+            } catch (error) {
+               return res.status(401).json({
+                    "errCode" : 401,
+                    "errText" : "Unauthorized"
+                });
+            }
         const id = req.params.id;
         const data = req.body;
         const quiz = await firestore.collection('quizTemplates').doc(id);
@@ -34,6 +51,14 @@ const updateQuizTemplate = async (req, res, next) => {
 
 const deleteQuizTemplate = async (req, res, next) => {
     try {
+        try{
+            var decodeToken = jwtDecode(req.headers.token);
+            } catch (error) {
+               return res.status(401).json({
+                    "errCode" : 401,
+                    "errText" : "Unauthorized"
+                });
+            }
         const id = req.params.id;
         await firestore.collection('quizTemplates').doc(id).delete();
         res.send('quizTemplates record deleted successfuly');
@@ -44,6 +69,14 @@ const deleteQuizTemplate = async (req, res, next) => {
 
 const getQuizTemplateByTeacherId = async (req, res, next) => {
     try {
+        try{
+            var decodeToken = jwtDecode(req.headers.token);
+            } catch (error) {
+               return res.status(401).json({
+                    "errCode" : 401,
+                    "errText" : "Unauthorized"
+                });
+            }
         const teacherId = req.params.id;
         const quizTemplates = await firestore.collection('quizTemplates');
         const data = await quizTemplates.get();
@@ -68,6 +101,14 @@ const getQuizTemplateByTeacherId = async (req, res, next) => {
 
 const getQuizTemplateById = async (req, res, next) => {
     try {
+        try{
+            var decodeToken = jwtDecode(req.headers.token);
+            } catch (error) {
+               return res.status(401).json({
+                    "errCode" : 401,
+                    "errText" : "Unauthorized"
+                });
+            }
         const id = req.params.id;
         const quiz = await firestore.collection('quizTemplates').doc(id);
         const data = await quiz.get();
