@@ -120,7 +120,7 @@ const saveQuizHistory = async (data, quizId) => {
     } else classroomData.quizHistories = [historyInClass]
 
     await classroom.update(classroomData);
-}
+    }
     return data
 }
 
@@ -131,12 +131,19 @@ io.on('connection', async (socket) => {
         socket.join(data)
     })
 
-    socket.on("init-game", (data) => {
-        let notificationData = Object.assign({}, data.quizData)
-        notificationData.quizId = data.quizId
-        delete notificationData.questions
-        io.to(data.quizData.classRoomId).emit("notification-quiz", notificationData);
+    socket.on("leave-classrooms", (data) => {
+        socket.leave(data)
+    })
 
+    socket.on("init-game", (data) => {
+        let alreadyHasQuiz = rooms.has(data.quizId)
+        if(!alreadyHasQuiz){
+            let notificationData = Object.assign({}, data.quizData)
+            notificationData.quizId = data.quizId
+            delete notificationData.questions
+            io.to(data.quizData.classRoomId).emit("notification-quiz", notificationData);
+        }
+        
         socket.join(data.quizId)
         let defaultData = {
             members: new Array(),
