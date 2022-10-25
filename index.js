@@ -60,7 +60,7 @@ const structuredClone = (objectToClone) => {
 
 const getMembers = (quizId) => {
     if (quizId) {
-        return rooms.get(quizId)?.members ? rooms.get(quizId).members : []
+        return rooms.get(quizId) ?.members ? rooms.get(quizId).members : []
     } else {
         return []
     }
@@ -76,7 +76,7 @@ const getRoom = (quizId) => {
 
 const getQustionsForStudent = (quizId, index) => {
     let qustion = structuredClone(getRoom(quizId).quizData.questions[index])
-    if (!qustion.type === 'poll') {
+    if (!(qustion.type === 'poll')) {
         qustion.answer.options.map((option) => {
             delete option.isCorrect
         })
@@ -106,15 +106,18 @@ const checkAnswers = (quizId, answer) => {
     if (questionData.type === 'single') {
         studentAnswer = questionData.answer.options[answer.index].isCorrect
     }
-    
+
     if (questionData.type === 'multiple') {
         studentAnswer = true
-        for(let i = 0; i < answer.length; i++){
-            console.log(answer);
-            if(!questionData.answer.options[answer[i].index].isCorrect){
+        for (let i = 0; i < answer.length; i++) {
+            if (!questionData.answer.options[answer[i].index].isCorrect) {
                 studentAnswer = false
             }
         }
+    }
+
+    if (questionData.type === 'true/false') {
+        studentAnswer = !answer.index == questionData.answer
     }
 
     return studentAnswer
@@ -131,8 +134,8 @@ const correctAnswer = (quizId) => {
         for (let i = 0; i < questionData.answer.options.length; i++) {
             if (questionData.answer.options[i].isCorrect) {
                 indexCorrectAnswer.push(i)
-            } 
-        } 
+            }
+        }
         return indexCorrectAnswer
     }
 }
@@ -249,10 +252,35 @@ io.on('connection', async (socket) => {
         let questionData = structuredClone(getCurrentQuestionData(data.quizId))
         let score = Math.round(1000 * (1 - (data.timeAnswer / questionData.time) * (1 / 2)))
         questionData.score = checkAnswers(data.quizId, data.answer) ? score : 0
-        getMemberData(data.quizId, data.memberId).quizData.push(questionData)
-        getMemberData(data.quizId, data.memberId).totalScore += questionData.score
 
-        io.to(data.quizId).emit("check-answer", correctAnswer(data.quizId));
+        if (!(questionData.type === 'poll')) {
+            getMemberData(data.quizId, data.memberId).quizData.push(questionData)
+            getMemberData(data.quizId, data.memberId).totalScore += questionData.score
+            io.to(data.quizId).emit("check-answer", correctAnswer(data.quizId));
+        } else {
+            questionData.answer.options[data.answer.index].selected = 1;
+            getMemberData(data.quizId, data.memberId)?.quizData.push(questionData)
+            
+            let listPoll = []
+            let allChoice = questionData.answer.options
+            let allAnswer = getMembers(data.quizId).filter((member) => {
+                console.log( member.quizData[getCurrentQuestionIndex(data.quizId)]?.answer);
+                return member.quizData[getCurrentQuestionIndex(data.quizId)]?.answer.options.some((option) => option.selected === 1)
+            }).length
+
+            for (let i = 0; i < allChoice.length; i++) {
+                allChoice[i].selected = getMembers(data.quizId).filter((member) => {
+                    return member.quizData[getCurrentQuestionIndex(data.quizId)]?.answer.options[i].selected === 1
+                }).length
+
+                listPoll.push(allChoice[i].selected > 0 ? allChoice[i].selected/allAnswer*100 : 0)
+                
+            }
+            io.to(data.quizId).emit("show-poll-answer", listPoll);
+            
+        }
+        let numStudentAnswer = getMembers(data.quizId).filter((member) => member.quizData.length === getCurrentQuestionIndex(data.quizId) + 1).length
+        io.to(data.quizId).emit("show-number-answers", numStudentAnswer);
     })
 
     socket.on('send-leaderboard', (data) => {
