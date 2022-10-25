@@ -93,8 +93,46 @@ const hasNextQuestion = (quizId) => {
 
 const nextQuestion = (quizId) => {
     getRoom(quizId).currentQuestion++
-    // getRoom(quizId).quizData.questions[getCurrentQuestionIndex(quizId)]  
+    // getRoom(quizId).quizData.questions[getCurrentQuestionIndex(quizId)]
     return getQustionsForStudent(quizId, getCurrentQuestionIndex(quizId))
+}
+
+const checkAnswers = (quizId, answer) => {
+    let studentAnswer = false
+    let questionData = structuredClone(getCurrentQuestionData(quizId))
+
+    if (questionData.type === 'single') {
+        studentAnswer = questionData.answer.options[answer.index].isCorrect
+    }
+    
+    if (questionData.type === 'multiple') {
+        studentAnswer = true
+        for(let i = 0; i < answer.length; i++){
+            console.log(answer);
+            if(!questionData.answer.options[answer[i].index].isCorrect){
+                studentAnswer = false
+            }
+        }
+    }
+
+    return studentAnswer
+}
+
+const correctAnswer = (quizId) => {
+    let questionData = structuredClone(getCurrentQuestionData(quizId))
+    if (questionData.type === 'single') {
+        return questionData.answer.options.findIndex((option) => option.isCorrect)
+    }
+
+    if (questionData.type === 'multiple') {
+        let indexCorrectAnswer = []
+        for (let i = 0; i < questionData.answer.options.length; i++) {
+            if (questionData.answer.options[i].isCorrect) {
+                indexCorrectAnswer.push(i)
+            } 
+        } 
+        return indexCorrectAnswer
+    }
 }
 
 const getCurrentQuestionData = (quizId) => {
@@ -105,23 +143,23 @@ const saveQuizHistory = async (data, quizId) => {
     data.createAt = new Date()
     data.quizId = quizId
     await firestore.collection('quizHistories').add(data)
-    if(data.classroomId){
-    const classroom = await firestore.collection('classrooms').doc(data.classroomId);
-    const getClassroom = await classroom.get();
-    const classroomData = await getClassroom.data()
-    var quizData = data.quizData
-    delete quizData.quistion
-    var historyInClass = {
-        "quizId": data.quizId,
-        "quizData": quizData,
-        "crateAt ": data.createAt
-    }
+    if (data.classroomId) {
+        const classroom = await firestore.collection('classrooms').doc(data.classroomId);
+        const getClassroom = await classroom.get();
+        const classroomData = await getClassroom.data()
+        var quizData = data.quizData
+        delete quizData.quistion
+        var historyInClass = {
+            "quizId": data.quizId,
+            "quizData": quizData,
+            "crateAt ": data.createAt
+        }
 
-    if (classroomData.quizHistories) {
-        classroomData.quizHistories.push(historyInClass)
-    } else classroomData.quizHistories = [historyInClass]
+        if (classroomData.quizHistories) {
+            classroomData.quizHistories.push(historyInClass)
+        } else classroomData.quizHistories = [historyInClass]
 
-    await classroom.update(classroomData);
+        await classroom.update(classroomData);
     }
     return data
 }
@@ -130,7 +168,7 @@ const endQuiz = async (quizId) => {
     const quiz = await firestore.collection('quizes').doc(quizId);
     const getQuiz = await quiz.get();
     const quizData = await getQuiz.data()
-    
+
     quizData.isLive = false
     await quiz.update(quizData);
 
@@ -150,13 +188,13 @@ io.on('connection', async (socket) => {
 
     socket.on("init-game", (data) => {
         let alreadyHasQuiz = rooms.has(data.quizId)
-        if(!alreadyHasQuiz){
+        if (!alreadyHasQuiz) {
             let notificationData = Object.assign({}, data.quizData)
             notificationData.quizId = data.quizId
             delete notificationData.questions
             io.to(data.quizData.classRoomId).emit("notification-quiz", notificationData);
         }
-        
+
         socket.join(data.quizId)
         let defaultData = {
             members: new Array(),
@@ -207,18 +245,12 @@ io.on('connection', async (socket) => {
 
     socket.on('select-choice', (data) => {
         let questionData = structuredClone(getCurrentQuestionData(data.quizId))
-        questionData.indexStudentAnswer = data.index
-        questionData.studentAnswer = questionData.answer.options[data.index].isCorrect
         let score = Math.round(1000 * (1 - (data.timeAnswer / questionData.time) * (1 / 2)))
-        questionData.score = questionData.studentAnswer ? score : 0
+        questionData.score = checkAnswers(data.quizId, data.answer) ? score : 0
         getMemberData(data.quizId, data.memberId).quizData.push(questionData)
         getMemberData(data.quizId, data.memberId).totalScore += questionData.score
 
-        let answerIndex = questionData.answer.options.findIndex((option) => {
-            return option.isCorrect === true
-        })
-
-        io.to(data.quizId).emit("check-answer", answerIndex);
+        io.to(data.quizId).emit("check-answer", correctAnswer(data.quizId));
     })
 
     socket.on('send-leaderboard', (data) => {
@@ -227,7 +259,7 @@ io.on('connection', async (socket) => {
                 displayName: member.user.displayName,
                 role: member.user.role,
                 image: member.user.imageUrl,
-                scoreInRound: member.quizData[getCurrentQuestionIndex(data.quizId)]?.score,
+                scoreInRound: member.quizData[getCurrentQuestionIndex(data.quizId)] ?.score,
                 score: member.totalScore
             }
         })

@@ -23,15 +23,16 @@ const jwtDecode = require('jwt-decode');
 
 const getQuizHistoryByQuizId= async (req, res, next) => {
     try {
-        try{
-        var decodeToken = jwtDecode(req.headers.token);
-        } catch (error) {
-           return res.status(401).json({
-                "errCode" : 401,
-                "errText" : "Unauthorized"
-            });
-        }
-        if (decodeToken.email) {
+        // try{
+        // var decodeToken = jwtDecode(req.headers.token);
+        // } catch (error) {
+        //    return res.status(401).json({
+        //         "errCode" : 401,
+        //         "errText" : "Unauthorized"
+        //     });
+        // }
+        // if (decodeToken.email) {
+        if (true) {
         const quizId = req.params.id;
         const quizHistories = await firestore.collection('quizHistories');
         const getquizHistories = await quizHistories.get()
