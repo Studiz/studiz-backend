@@ -76,9 +76,11 @@ const getRoom = (quizId) => {
 
 const getQustionsForStudent = (quizId, index) => {
     let qustion = structuredClone(getRoom(quizId).quizData.questions[index])
-    qustion.answer.options.map((option) => {
-        delete option.isCorrect
-    })
+    if (!qustion.type === 'poll') {
+        qustion.answer.options.map((option) => {
+            delete option.isCorrect
+        })
+    }
     qustion.currentQuestion = index + 1
     return qustion
 }
