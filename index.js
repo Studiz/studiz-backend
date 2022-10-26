@@ -181,7 +181,20 @@ const endQuiz = async (quizId) => {
 }
 
 const pushNotification = async (notification) => {
-    return await firestore.collection('notifications').add(notification);
+    const classroom = await firestore.collection('classrooms').doc(notification.classroomId)
+    const classroomData = await classroom.get()
+    const students = await classroomData.data().students
+    students.forEach(async (student) => {
+        notification.uid = student.uid
+        notification.isRead = false
+        const notificationDoc = await firestore.collection('notifications').add(notification)
+        const notificationId = await notificationDoc.id
+        const notificationForSetId = await firestore.collection('notifications').doc(notificationId);
+        const getnotification = await notificationForSetId.get()
+        const notificationData = getnotification.data()
+        notificationData.id = notificationId
+        await notificationForSetId.update(notificationData);
+    })
 }
 
 io.on('connection', async (socket) => {
@@ -201,11 +214,12 @@ io.on('connection', async (socket) => {
             let notificationData = Object.assign({}, data.quizData)
             notificationData.quizId = data.quizId
             delete notificationData.questions
-            console.log(notificationData);
-            // io.to(data.quizData.classRoomId).emit("notification-quiz", notificationData);
-            pushNotification(notificationData).then(() => {
-                io.to(data.quizData.classroomId).emit("notification-quiz");
-            })
+
+            if (notificationData.classroomId) {
+                pushNotification(notificationData).then(() => {
+                    io.to(data.quizData.classroomId).emit("notification-quiz", notificationData);
+                })
+            }
         }
 
         socket.join(data.quizId)

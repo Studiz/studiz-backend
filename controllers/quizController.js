@@ -53,7 +53,7 @@ const createQuiz = async (req, res, next) => {
             pinCode: pinCode,
             quizTemplate: quizeTemplatesData.data(),
             studentList: data.studentList,
-            clasroomId: data.classroomId,
+            classroomId: data.classroomId,
             isLive: true
         }
 
