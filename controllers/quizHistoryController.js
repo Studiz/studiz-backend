@@ -90,7 +90,7 @@ const getQuizHistoryByStudentUid = async (req, res, next) => {
         const quizHistoryArray = []
         data.forEach(doc => {
             var students = doc.data().members
-            students.forEach(doc2 => {
+            students?.forEach(doc2 => {
                 if (doc2.user.uid === uid) {
                     let quizHistoy = doc.data()
                     quizHistoy.id = doc.id
@@ -128,7 +128,7 @@ const getQuizHistoryByTeacherId = async (req, res, next) => {
         });
       
         const filterData = quizHistoryArray.filter((quizHistory) => {
-            return id.includes(quizHistory.quizData.teacher.teacherId)
+            return id.includes(quizHistory.quizData?.teacher.teacherId)
         })
         if(filterData) {
             res.status(200).send(filterData);

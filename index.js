@@ -86,7 +86,7 @@ const getQustionsForStudent = (quizId, index) => {
 }
 
 const getCurrentQuestionIndex = (quizId) => {
-    return getRoom(quizId).currentQuestion ? getRoom(quizId).currentQuestion : 0
+    return getRoom(quizId)?.currentQuestion ? getRoom(quizId).currentQuestion : 0
 }
 
 const hasNextQuestion = (quizId) => {
@@ -147,11 +147,19 @@ const getCurrentQuestionData = (quizId) => {
 const saveQuizHistory = async (data, quizId) => {
     data.createAt = new Date()
     data.quizId = quizId
-    await firestore.collection('quizHistories').add(data)
-    if (data.classroomId) {
-        const classroom = await firestore.collection('classrooms').doc(data.classroomId);
+    const quizHistoryNew = await firestore.collection('quizHistories').add(data)
+    const quizHistoryId = quizHistoryNew.id
+    if (data.quizData.classroomId) {
+        const classroom = await firestore.collection('classrooms').doc(data.quizData.classroomId);
         const getClassroom = await classroom.get();
         const classroomData = await getClassroom.data()
+        //Update classroomName
+        const quizHistory = await firestore.collection('quizHistories').doc(quizHistoryId)
+        const getQuizHistory = await quizHistory.get()
+        const quizHistoryData = await getQuizHistory.data()
+        quizHistoryData.quizData.classroomName = classroomData.name
+        quizHistory.update(quizHistoryData);
+        
         var quizData = data.quizData
         delete quizData.quistion
         var historyInClass = {
@@ -274,6 +282,8 @@ io.on('connection', async (socket) => {
         let questionData = structuredClone(getCurrentQuestionData(data.quizId))
         let score = Math.round(1000 * (1 - (data.timeAnswer / questionData.time) * (1 / 2)))
         questionData.score = checkAnswers(data.quizId, data.answer) ? score : 0
+        questionData.studentAnswer = checkAnswers(data.quizId, data.answer)
+        questionData.indexStudentAnswer = data.answer.index
 
         if (!(questionData.type === 'poll')) {
             getMemberData(data.quizId, data.memberId).quizData.push(questionData)
