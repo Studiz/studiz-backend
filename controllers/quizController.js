@@ -53,7 +53,7 @@ const createQuiz = async (req, res, next) => {
             pinCode: pinCode,
             quizTemplate: quizeTemplatesData.data(),
             studentList: data.studentList,
-            classRoomId: data.classRoomId,
+            clasroomId: data.classroomId,
             isLive: true
         }
 
@@ -62,9 +62,9 @@ const createQuiz = async (req, res, next) => {
         
         let quiz = await firestore.collection('quizes').add(quizData);
         quizData.id = await quiz.id
-        if (data.classRoomId) {
-            var classRoomId = data.classRoomId
-            const classroom = await firestore.collection('classrooms').doc(classRoomId);
+        if (data.classroomId) {
+            var classroomId = data.classroomId
+            const classroom = await firestore.collection('classrooms').doc(classroomId);
             const getClass = await classroom.get();
             const classroomData = getClass.data();
             const studentInClass = classroomData.students
