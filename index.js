@@ -76,7 +76,7 @@ const getRoom = (quizId) => {
 
 const getQustionsForStudent = (quizId, index) => {
     let qustion = structuredClone(getRoom(quizId).quizData.questions[index])
-    if (!(qustion.type === 'poll')) {
+    if (!qustion.type === 'poll') {
         qustion.answer.options.map((option) => {
             delete option.isCorrect
         })
@@ -264,7 +264,6 @@ io.on('connection', async (socket) => {
             let listPoll = []
             let allChoice = questionData.answer.options
             let allAnswer = getMembers(data.quizId).filter((member) => {
-                console.log( member.quizData[getCurrentQuestionIndex(data.quizId)]?.answer);
                 return member.quizData[getCurrentQuestionIndex(data.quizId)]?.answer.options.some((option) => option.selected === 1)
             }).length
 
