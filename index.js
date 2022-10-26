@@ -180,6 +180,10 @@ const endQuiz = async (quizId) => {
     return quizData
 }
 
+const pushNotification = async (notification) => {
+    return await firestore.collection('notifications').add(notification);
+}
+
 io.on('connection', async (socket) => {
     console.log('client socket connected')
 
@@ -197,7 +201,11 @@ io.on('connection', async (socket) => {
             let notificationData = Object.assign({}, data.quizData)
             notificationData.quizId = data.quizId
             delete notificationData.questions
-            io.to(data.quizData.classRoomId).emit("notification-quiz", notificationData);
+            console.log(notificationData);
+            // io.to(data.quizData.classRoomId).emit("notification-quiz", notificationData);
+            pushNotification(notificationData).then(() => {
+                io.to(data.quizData.classroomId).emit("notification-quiz");
+            })
         }
 
         socket.join(data.quizId)
