@@ -157,22 +157,23 @@ const saveQuizHistory = async (data, quizId) => {
         const quizHistory = await firestore.collection('quizHistories').doc(quizHistoryId)
         const getQuizHistory = await quizHistory.get()
         const quizHistoryData = await getQuizHistory.data()
-        quizHistoryData.quizData.classroomName = classroomData.name
-        quizHistory.update(quizHistoryData);
+        quizHistoryData.quizData.classroomName = await classroomData.name
+        await quizHistory.update(quizHistoryData);
         
-        var quizData = data.quizData
-        delete quizData.quistion
-        var historyInClass = {
-            "quizId": data.quizId,
-            "quizData": quizData,
-            "crateAt ": data.createAt
-        }
+        //เดี๋ยวมาดูหลังสอบ
+        // var quizData = data.quizData
+        // delete quizData.quistion
+        // var historyInClass = {
+        //     "quizId": data.quizId,
+        //     "quizData": quizData,
+        //     "crateAt ": data.createAt
+        // }
 
-        if (classroomData.quizHistories) {
-            classroomData.quizHistories.push(historyInClass)
-        } else classroomData.quizHistories = [historyInClass]
+        // if (classroomData.quizHistories) {
+        //     classroomData.quizHistories.push(historyInClass)
+        // } else classroomData.quizHistories = [historyInClass]
 
-        await classroom.update(classroomData);
+        // await classroom.update(classroomData);
     }
     return data
 }

@@ -44,7 +44,9 @@ const updateQuizTemplate = async (req, res, next) => {
         const data = req.body;
         const quiz = await firestore.collection('quizTemplates').doc(id);
         await quiz.update(data);
-        res.send('quizTemplates record updated successfuly');
+        res.status(200).json({
+            data
+        });
     } catch (error) {
         res.status(400).send(error.message);
     }
