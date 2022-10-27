@@ -100,10 +100,8 @@ const updateImageForQuizTemplate = async (req, res, next) => {
                 });
             }
         const file = req.files.studizImg;
-        console.log(file);
         const timestamp = Date.now()
         const fileName = `${timestamp}_${file.name}`;
-        console.log(fileName)
         const imageRef = storage.child(fileName);
 
         const snapshot = await imageRef.put(file.data, {
@@ -115,11 +113,11 @@ const updateImageForQuizTemplate = async (req, res, next) => {
         const id = req.params.id;
         const no = Number(req.params.no)
         const quiz = await firestore.collection('quizTemplates').doc(id);
-        const datQuiz = await quiz.get();
-        var data = datQuiz.data()
-        data.questions[no].image = imageURL
-        await quiz.update(data);
-        res.status(200).send(data)
+        const getQuiz = await quiz.get();
+        let quizData = await getQuiz.data()
+        quizData.questions[no].image = imageURL
+        await quiz.update(quizData);
+        res.status(200).send(quizData)
 
     } catch (error) {
         res.status(400).send(error.message);
