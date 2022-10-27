@@ -145,10 +145,10 @@ const getCurrentQuestionData = (quizId) => {
 }
 
 const saveQuizHistory = async (data, quizId) => {
-    data.createAt = new Date()
+    // data.createAt = new Date()
     data.quizId = quizId
-    const quizHistoryNew = await firestore.collection('quizHistories').add(data)
-    const quizHistoryId = quizHistoryNew.id
+    const quizHistoryNew = await firestore.collection('quizHistories').add(structuredClone(data))
+    const quizHistoryId = await quizHistoryNew.id
     if (data.quizData.classroomId) {
         const classroom = await firestore.collection('classrooms').doc(data.quizData.classroomId);
         const getClassroom = await classroom.get();
