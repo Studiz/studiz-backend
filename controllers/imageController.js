@@ -128,7 +128,6 @@ const uploadImage = async (req, res, next) => {
     try {
 
         const file = req.files.studizImg;
-        console.log(file);
         const timestamp = Date.now()
         const fileName = `${timestamp}_${file.name}`;
         const imageRef = storage.child(fileName);
