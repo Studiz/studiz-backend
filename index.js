@@ -205,6 +205,10 @@ const pushNotification = async (notification) => {
     })
 }
 
+const alreadyHasQuiz = (quizId) => {
+    return rooms.has(quizId)
+}
+
 io.on('connection', async (socket) => {
     console.log('client socket connected')
 
@@ -217,8 +221,7 @@ io.on('connection', async (socket) => {
     })
 
     socket.on("init-game", (data) => {
-        let alreadyHasQuiz = rooms.has(data.quizId)
-        if (!alreadyHasQuiz) {
+        if (!alreadyHasQuiz(data.quizId)) {
             let notificationData = Object.assign({}, data.quizData)
             notificationData.quizId = data.quizId
             delete notificationData.questions
@@ -244,18 +247,23 @@ io.on('connection', async (socket) => {
 
     socket.on('join-lobby', (data) => {
         socket.join(data.quizId)
-        if (getMembers(data.quizId).length > 0) {
-            if (!getMembers(data.quizId).some((member) => member.memberId === data.memberId)) {
-                getMembers(data.quizId).push(data)
+        if(alreadyHasQuiz(data.quizId)){
+            if (getMembers(data.quizId).length > 0) {
+                if (!getMembers(data.quizId).some((member) => member.memberId === data.memberId)) {
+                    getMembers(data.quizId).push(data)
+                } else {
+                    let index = getMembers(data.quizId).findIndex((member) => member.memberId === data.memberId)
+                    getMembers(data.quizId)[index].socketId = data.socketId
+                }
             } else {
-                let index = getMembers(data.quizId).findIndex((member) => member.memberId === data.memberId)
-                getMembers(data.quizId)[index].socketId = data.socketId
+                getMembers(data.quizId).push(data)
             }
+            io.to(data.quizId).emit("joined", getMembers(data.quizId));
         } else {
-            getMembers(data.quizId).push(data)
+            io.to(data.quizId).emit("quiz-end");
+            socket.leave(data.quizId)
         }
 
-        io.to(data.quizId).emit("joined", getMembers(data.quizId));
     })
 
     socket.on('leave-lobby', (data) => {
