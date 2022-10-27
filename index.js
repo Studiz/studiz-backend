@@ -86,11 +86,11 @@ const getQustionsForStudent = (quizId, index) => {
 }
 
 const getCurrentQuestionIndex = (quizId) => {
-    return getRoom(quizId)?.currentQuestion ? getRoom(quizId).currentQuestion : 0
+    return getRoom(quizId)?.currentQuestion ? getRoom(quizId)?.currentQuestion : 0
 }
 
 const hasNextQuestion = (quizId) => {
-    return getCurrentQuestionIndex(quizId) < getRoom(quizId).quizData.questions.length - 1
+    return getCurrentQuestionIndex(quizId) < getRoom(quizId)?.quizData.questions.length - 1
 }
 
 const nextQuestion = (quizId) => {
