@@ -54,11 +54,11 @@ const createQuiz = async (req, res, next) => {
             quizTemplate: quizeTemplatesData.data(),
             studentList: data.studentList,
             classroomId: data.classroomId,
-            isLive: true
+            isLive: true,
+            startAt: data.startAt
         }
 
         quizData.quizTemplate.totalQuestion = quizData.quizTemplate.questions.length
-        quizData.startAt = dayjs().format('DD/MM/YYYY, HH:mm:ss')
         
         let quiz = await firestore.collection('quizes').add(quizData);
         quizData.id = await quiz.id
