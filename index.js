@@ -138,6 +138,11 @@ const correctAnswer = (quizId) => {
         }
         return indexCorrectAnswer
     }
+
+    if (questionData.type === 'true/false') {
+        return questionData.answer ? 0 : 1
+    }
+
 }
 
 const getCurrentQuestionData = (quizId) => {
@@ -184,6 +189,17 @@ const endQuiz = async (quizId) => {
     const quizData = await getQuiz.data()
 
     quizData.isLive = false
+    await quiz.update(quizData);
+
+    return quizData
+}
+
+const startQuiz = async (quizId) => {
+    const quiz = await firestore.collection('quizes').doc(quizId);
+    const getQuiz = await quiz.get();
+    const quizData = await getQuiz.data()
+
+    quizData.isLive = true
     await quiz.update(quizData);
 
     return quizData
@@ -278,10 +294,12 @@ io.on('connection', async (socket) => {
 
     socket.on('start-game', (data) => {
         let currentQuestion = getCurrentQuestionIndex(data.quizId)
+        startQuiz(data.quizId)
         io.to(data.quizId).emit("move-to-quiz", getQustionsForStudent(data.quizId, currentQuestion));
     })
 
     socket.on('end-game', (data) => {
+        endQuiz(data.quizId)
         io.to(data.quizId).emit("move-to-home");
         socket.leave(data.quizId)
         rooms.delete(data.quizId)
@@ -362,6 +380,7 @@ io.on('connection', async (socket) => {
             //Save quiz history
             saveQuizHistory(rooms.get(data.quizId), data.quizId).then((data) => {
                 io.to(data.quizId).emit("show-quiz-summary", rooms.get(data.quizId));
+                endQuiz(data.quizId)
                 rooms.delete(data.quizId)
                 socket.leave(data.quizId)
             })

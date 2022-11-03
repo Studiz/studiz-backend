@@ -26,14 +26,14 @@ var transporter = nodemailer.createTransport({
 const createQuiz = async (req, res, next) => {
 
     try {
-        try{
+        try {
             var decodeToken = jwtDecode(req.headers.token);
-            } catch (error) {
-               return res.status(401).json({
-                    "errCode" : 401,
-                    "errText" : "Unauthorized"
-                });
-            }
+        } catch (error) {
+            return res.status(401).json({
+                "errCode": 401,
+                "errText": "Unauthorized"
+            });
+        }
         const data = req.body
 
         var pinCode = Math.floor(100000 + Math.random() * 900000)
@@ -54,12 +54,12 @@ const createQuiz = async (req, res, next) => {
             quizTemplate: quizeTemplatesData.data(),
             studentList: data.studentList,
             classroomId: data.classroomId,
-            isLive: true,
+            isLive: false,
             startAt: data.startAt
         }
 
         quizData.quizTemplate.totalQuestion = quizData.quizTemplate.questions.length
-        
+
         let quiz = await firestore.collection('quizes').add(quizData);
         quizData.id = await quiz.id
         if (data.classroomId) {
@@ -139,8 +139,13 @@ const getQuizByIdForStudent = async (req, res, next) => {
             res.status(404).send('quiz with the given ID not found');
         } else {
             let dataForStudent = data.data()
-            delete dataForStudent.quizTemplate.questions
-            res.send(dataForStudent);
+            if (dataForStudent.isLive) {
+                res.status(400).send('Quiz already started.');
+            } else {
+                delete dataForStudent.quizTemplate.questions
+                res.send(dataForStudent);
+            }
+
         }
     } catch (error) {
         res.status(400).send(error.message);
@@ -179,14 +184,10 @@ const joinQuiz = async (req, res, next) => {
             let getQuiz = await quizById.get()
             quiz = getQuiz.data()
 
-            if (quiz.isLive) {
-                res.status(200).json({
-                    "quizId": quizIdFromPinCode,
-                    "quizDetails": quiz
-                });
-            } else {
-                res.status(400).send('Quiz has ended.');
-            }
+            res.status(200).json({
+                "quizId": quizIdFromPinCode,
+                "quizDetails": quiz
+            });
 
         }
 

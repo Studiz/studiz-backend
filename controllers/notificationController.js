@@ -128,7 +128,8 @@ const getNotificationByUid = async (req, res, next) => {
         });
 
         if (notificationsArray.length === 0) {
-            res.status(404).send('notification with the given studentUid not found');
+            // res.status(404).send('notification with the given studentUid not found');
+            res.send([]);
         } else {
             res.send(notificationsArray);
         }
