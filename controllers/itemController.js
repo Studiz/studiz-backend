@@ -76,11 +76,7 @@ const randomItems = async (req, res, next) => {
         } else {
             data.forEach((doc) => {
                 const docData = doc.data();
-                var itemData = {
-                    id: doc.id,
-                    itemData: docData,
-                };
-                itemArray.push(itemData);
+                itemArray.push(docData);
             });
 
             for (let i = 0; i < numberItems; i++) {
