@@ -70,7 +70,7 @@ const randomItems = async (req, res, next) => {
         const data = await item.get();
         const itemArray = [];
         const randomItems = [];
-        const numberItems = req.params.numberItems;
+        const numberItems = req.params.numberItems > 0 ? req.params.numberItems : 1;
         if (data.empty) {
             res.status(404).send("No item record found");
         } else {
