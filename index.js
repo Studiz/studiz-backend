@@ -305,12 +305,18 @@ io.on("connection", async (socket) => {
     });
 
     socket.on("select-choice", (data) => {
+        let useItemAddScore = data?.item?.code.includes("P");
         let questionData = structuredClone(getCurrentQuestionData(data.quizId));
         let score = Math.round(1000 * (1 - (data.timeAnswer / questionData.time) * (1 / 2)));
+        if (useItemAddScore) {
+            score = score * data.item.value;
+        }
+        if (data.item) {
+            questionData.item = data.item;
+        }
         questionData.score = checkAnswers(data.quizId, data.answer) ? score : 0;
         questionData.studentAnswer = checkAnswers(data.quizId, data.answer);
         questionData.indexStudentAnswer = data.answer.index;
-
         if (!(questionData.type === "poll")) {
             getMemberData(data.quizId, data.memberId).quizData.push(questionData);
             getMemberData(data.quizId, data.memberId).totalScore += questionData.score;
@@ -353,7 +359,6 @@ io.on("connection", async (socket) => {
 
     socket.on("send-next-question", (data) => {
         // getCurrentQuestionIndex(data.quizId) = getCurrentQuestionIndex(data.quizId) + 1
-        // console.log(getCurrentQuestionIndex(data.quizId));
         // nextQuestion(data.quizId)
         if (hasNextQuestion(data.quizId)) {
             io.to(data.quizId).emit("show-next-question", nextQuestion(data.quizId));
