@@ -338,6 +338,12 @@ io.on("connection", async (socket) => {
 
                 listPoll.push(allChoice[i].selected > 0 ? (allChoice[i].selected / allAnswer) * 100 : 0);
             }
+
+            for (let i = 0; i < questionData.answer.options.length; i++) {
+                questionData.answer.options[i].selected = listPoll[i];
+            }
+
+            getMemberData(data.quizId, data.memberId).quizData[getCurrentQuestionIndex(data.quizId)] = questionData;
             io.to(data.quizId).emit("show-poll-answer", listPoll);
         }
         let numStudentAnswer = getMembers(data.quizId).filter((member) => member.quizData.length === getCurrentQuestionIndex(data.quizId) + 1).length;
