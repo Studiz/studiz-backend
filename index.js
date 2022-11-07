@@ -152,7 +152,20 @@ const getCurrentQuestionData = (quizId) => {
 const saveQuizHistory = async (data, quizId) => {
     // data.createAt = new Date()
     data.quizId = quizId;
-    const quizHistoryNew = await firestore.collection("quizHistories").add(structuredClone(data));
+    let quizHistory = structuredClone(data);
+    //Set quizHistory data
+    quizHistory.quizData.numberQuestions = quizHistory.quizData.questions.filter((question) => {
+        return question.type !== "poll";
+    }).length;
+    quizHistory.members.map((member) => {
+        member.numberCorrectAnswers = member.quizData.filter((quiz) => {
+            return quiz.studentAnswer;
+        }).length;
+        member.numberInCorrectAnswers = member.quizData?.filter((quiz) => {
+            return !quiz.studentAnswer && quiz.type !== "poll";
+        }).length;
+    });
+    const quizHistoryNew = await firestore.collection("quizHistories").add(structuredClone(quizHistory));
     const quizHistoryId = await quizHistoryNew.id;
     if (data.quizData.classroomId) {
         const classroom = await firestore.collection("classrooms").doc(data.quizData.classroomId);
