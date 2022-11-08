@@ -82,7 +82,6 @@ const randomItems = async (req, res, next) => {
             for (let i = 0; i < numberItems; i++) {
                 // const randomItem = itemArray[Math.floor(Math.random() * itemArray.length)];
                 const { pick } = gacha.simple(itemArray);
-                console.log(pick);
                 randomItems.push(pick);
             }
 
