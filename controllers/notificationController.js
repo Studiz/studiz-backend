@@ -138,10 +138,29 @@ const getNotificationByUid = async (req, res, next) => {
     }
 }
 
+const deleteNotificationByUid = async (req, res, next) => {
+    try {
+        const studentUid = req.params.uid;
+        const notifications = await firestore.collection('notifications');
+        const data = await notifications.get();
+        data.forEach(async doc => {
+            if (doc.data().uid === studentUid) {
+                const id = doc.id
+                await firestore.collection('notifications').doc(id).delete();
+            }
+        });
+        res.status(200).send("notification record deleted successfuly");
+     
+    } catch (error) {
+        res.status(400).send(error.message);
+    }
+}
+
 module.exports = {
     addNotification,
     getNotificationByClassroomsId,
     readNotification,
     deleteNotification,
-    getNotificationByUid
+    getNotificationByUid,
+    deleteNotificationByUid
 }

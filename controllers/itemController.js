@@ -3,6 +3,7 @@
 const firebase = require("../db");
 const firestore = firebase.firestore();
 const middleware = require("../middleware");
+const gacha = require('simple-gacha');
 
 const addItemInStore = async (req, res, next) => {
     try {
@@ -78,10 +79,11 @@ const randomItems = async (req, res, next) => {
                 const docData = doc.data();
                 itemArray.push(docData);
             });
-
             for (let i = 0; i < numberItems; i++) {
-                const randomItem = itemArray[Math.floor(Math.random() * itemArray.length)];
-                randomItems.push(randomItem);
+                // const randomItem = itemArray[Math.floor(Math.random() * itemArray.length)];
+                const { pick } = gacha.simple(itemArray);
+                console.log(pick);
+                randomItems.push(pick);
             }
 
             res.send(randomItems);
