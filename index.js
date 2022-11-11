@@ -330,6 +330,9 @@ io.on("connection", async (socket) => {
         questionData.score = checkAnswers(data.quizId, data.answer) ? score : 0;
         questionData.studentAnswer = checkAnswers(data.quizId, data.answer);
         questionData.indexStudentAnswer = data.answer.index;
+        if (questionData.type === "multiple") {
+            questionData.indexStudentAnswer = data.answer.map((answer) => answer.index);
+        }
         if (!(questionData.type === "poll")) {
             getMemberData(data.quizId, data.memberId).quizData.push(questionData);
             getMemberData(data.quizId, data.memberId).totalScore += questionData.score;
