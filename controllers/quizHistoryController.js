@@ -139,11 +139,41 @@ const getQuizHistoryByTeacherId = async (req, res, next) => {
     }
 }
 
+const getQuizHistoryByClassroomId = async (req, res, next) => {
+    try {
+        try{
+            var decodeToken = jwtDecode(req.headers.token);
+            } catch (error) {
+               return res.status(401).json({
+                    "errCode" : 401,
+                    "errText" : "Unauthorized"
+                });
+            }
+        const id = req.params.id;
+        const quizHistories = await firestore.collection('quizHistories');
+        const data = await quizHistories.get();
+        const quizHistoryArray = []
+        data.forEach(doc => {
+            quizHistoryArray.push(doc.data())
+           
+        });
+      
+        const filterData = quizHistoryArray.filter((quizHistory) => {
+            return id.includes(quizHistory.quizData?.classroomId)
+        })
+  
+            res.status(200).send(filterData);
+
+    } catch (error) {
+        res.status(400).send(error.message);
+    }
+}
 
 
 module.exports = {
     getQuizHistoryByQuizId,
     getQuizHistoryById,
     getQuizHistoryByStudentUid,
-    getQuizHistoryByTeacherId
+    getQuizHistoryByTeacherId,
+    getQuizHistoryByClassroomId
 }
