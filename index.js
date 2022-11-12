@@ -268,7 +268,6 @@ io.on("connection", async (socket) => {
             members: new Array(),
             quizData: data.quizData,
             currentQuestion: 0,
-            game: {},
             leaderboard: {},
         };
 
@@ -322,7 +321,7 @@ io.on("connection", async (socket) => {
         let questionData = structuredClone(getCurrentQuestionData(data.quizId));
         let score = Math.round(1000 * (1 - (data.timeAnswer / questionData.time) * (1 / 2)));
         if (useItemAddScore) {
-            score = score * data.item.value;
+            score = Math.round(score * data.item.value);
         }
         if (data.item) {
             questionData.item = data.item;
@@ -340,27 +339,6 @@ io.on("connection", async (socket) => {
         } else {
             questionData.answer.options[data.answer.index].selected = 1;
             getMemberData(data.quizId, data.memberId)?.quizData.push(questionData);
-
-            let listPoll = [];
-            let allChoice = questionData.answer.options;
-            let allAnswer = getMembers(data.quizId).filter((member) => {
-                return member.quizData[getCurrentQuestionIndex(data.quizId)]?.answer.options.some((option) => option.selected === 1);
-            }).length;
-
-            for (let i = 0; i < allChoice.length; i++) {
-                allChoice[i].selected = getMembers(data.quizId).filter((member) => {
-                    return member.quizData[getCurrentQuestionIndex(data.quizId)]?.answer.options[i].selected === 1;
-                }).length;
-
-                listPoll.push(allChoice[i].selected > 0 ? (allChoice[i].selected / allAnswer) * 100 : 0);
-            }
-
-            for (let i = 0; i < questionData.answer.options.length; i++) {
-                questionData.answer.options[i].selected = listPoll[i];
-            }
-
-            getMemberData(data.quizId, data.memberId).quizData[getCurrentQuestionIndex(data.quizId)] = questionData;
-            io.to(data.quizId).emit("show-poll-answer", listPoll);
         }
         let numStudentAnswer = getMembers(data.quizId).filter((member) => member.quizData.length === getCurrentQuestionIndex(data.quizId) + 1).length;
         io.to(data.quizId).emit("show-number-answers", numStudentAnswer);
@@ -377,6 +355,34 @@ io.on("connection", async (socket) => {
             };
         });
         io.to(data.quizId).emit("show-leaderboard", leaderboard);
+    });
+
+    socket.on("get-poll-result", (data) => {
+        let questionData = structuredClone(getCurrentQuestionData(data.quizId));
+        let listPoll = [];
+        let allChoice = questionData.answer.options;
+        let allAnswer = getMembers(data.quizId).filter((member) => {
+            return member.quizData[getCurrentQuestionIndex(data.quizId)]?.answer.options.some((option) => option.selected === 1);
+        }).length;
+
+        for (let i = 0; i < allChoice.length; i++) {
+            allChoice[i].selected = getMembers(data.quizId).filter((member) => {
+                return member.quizData[getCurrentQuestionIndex(data.quizId)]?.answer.options[i].selected === 1;
+            }).length;
+
+            listPoll.push(allChoice[i].selected > 0 ? (allChoice[i].selected / allAnswer) * 100 : 0);
+        }
+
+        for (let i = 0; i < questionData.answer.options.length; i++) {
+            questionData.answer.options[i].selected = listPoll[i];
+        }
+
+        getMembers(data.quizId).forEach((member) => {
+            member.quizData[getCurrentQuestionIndex(data.quizId)] = questionData;
+            console.log(member.quizData[getCurrentQuestionIndex(data.quizId)].answer.options);
+        });
+
+        io.to(data.quizId).emit("show-poll-result", listPoll);
     });
 
     socket.on("send-next-question", (data) => {
