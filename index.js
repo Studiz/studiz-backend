@@ -60,19 +60,31 @@ const structuredClone = (objectToClone) => {
 };
 
 const getMembers = (quizId) => {
-    if (quizId) {
-        return rooms.get(quizId)?.members ? rooms.get(quizId).members : [];
-    } else {
-        return [];
+    try {
+        if (quizId) {
+            return rooms.get(quizId)?.members ? rooms.get(quizId).members : [];
+        } else {
+            return [];
+        }
+    } catch (error) {
+        console.log(error);
     }
 };
 
 const getMemberData = (quizId, memberId) => {
-    return getMembers(quizId).find((member) => member.memberId === memberId);
+    try {
+        return getMembers(quizId).find((member) => member.memberId === memberId);
+    } catch (error) {
+        console.log(error);
+    }
 };
 
 const getRoom = (quizId) => {
-    return rooms.get(quizId);
+    try {
+        return rooms.get(quizId);
+    } catch (error) {
+        console.log(error);
+    }
 };
 
 const getQustionsForStudent = (quizId, index) => {
@@ -370,7 +382,7 @@ io.on("connection", async (socket) => {
                 return member.quizData[getCurrentQuestionIndex(data.quizId)]?.answer.options[i].selected === 1;
             }).length;
 
-            listPoll.push(allChoice[i].selected > 0 ? (allChoice[i].selected / allAnswer) * 100 : 0);
+            listPoll.push(allChoice[i].selected > 0 ? Math.round((allChoice[i].selected / allAnswer) * 100) : 0);
         }
 
         for (let i = 0; i < questionData.answer.options.length; i++) {
@@ -379,7 +391,6 @@ io.on("connection", async (socket) => {
 
         getMembers(data.quizId).forEach((member) => {
             member.quizData[getCurrentQuestionIndex(data.quizId)] = questionData;
-            console.log(member.quizData[getCurrentQuestionIndex(data.quizId)].answer.options);
         });
 
         io.to(data.quizId).emit("show-poll-result", listPoll);
