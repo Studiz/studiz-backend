@@ -18,7 +18,6 @@ const createQuizTemplate = async (req, res, next) => {
             }
         const data = req.body
         var quizData = data
-        quizData.createAt = dayjs().format('DD/MM/YYYY, HH:mm:ss')
         await firestore.collection('quizTemplates').add(quizData).then((res) => {
             data.id = res.id
         });

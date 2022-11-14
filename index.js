@@ -162,7 +162,6 @@ const getCurrentQuestionData = (quizId) => {
 };
 
 const saveQuizHistory = async (data, quizId) => {
-    // data.createAt = new Date()
     data.quizId = quizId;
     let quizHistory = structuredClone(data);
     //Set quizHistory data
