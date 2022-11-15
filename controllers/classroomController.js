@@ -249,7 +249,32 @@ const leftClassroom = async (req, res, next) => {
 const deleteClassroom = async (req, res, next) => {
     try {
         const id = req.params.id;
-        await firestore.collection('classrooms').doc(id).delete();
+        const classroom = await firestore.collection('classrooms').doc(id);
+        const getClassroom = await classroom.get();
+        const classroomData = getClassroom.data();
+        const teacherInclass = classroomData.teacher
+        const teacher = await firestore.collection('teachers').doc(teacherInclass.id);
+        const getTeacher =  await teacher.get();
+        const teacherData = getTeacher.data();
+        const teacherClassroom = teacherData.classrooms;
+
+        teacherClassroom.splice(teacherClassroom.findIndex(data => data.id === id),1);
+        await teacher.update(teacherData)
+
+        const students = classroomData.students
+        // console.log(classroomData);
+        students.forEach(async doc => {
+            const student = await firestore.collection('students').doc(doc.id);
+            const getStudent =  await student.get();
+            const studentData = getStudent.data();
+            const studentClassroom = studentData.classrooms;
+            // console.log(studentData);
+            
+            studentClassroom.splice(studentClassroom.findIndex(data => data.id === id),1);
+            await student.update(studentData)
+        });
+
+        classroom.delete()
         res.send('Classroom record deleted successfuly');
     } catch (error) {
         res.status(400).send(error.message);
@@ -372,13 +397,44 @@ const kickStudntInClassroom = async (req, res, next) => {
     }
 }
 
-// const addHistoryQuizInClassroom = async (req, res, next) => {
-//     try {
-//         const allClassroom = firestore.collection('classrooms');
-//     }catch (error) {
-//         res.status(400).send(error.message);
-//     }
-// }
+const kickAllStudntInClassroom = async (req, res, next) => {
+    try {
+        try{
+            var decodeToken = jwtDecode(req.headers.token);
+            } catch (error) {
+               return res.status(401).json({
+                    "errCode" : 401,
+                    "errText" : "Unauthorized"
+                });
+            }
+            const allClassroom = firestore.collection('classrooms');
+            const id = req.params.classroomId;
+            const classroomById = await allClassroom.doc(id)
+            var getClass = await classroomById.get()
+            var classroom = getClass.data()
+            const students = classroom.students
+
+            // Delete classrooms in user profile
+            students.forEach(async doc => {
+                const student = await firestore.collection('students').doc(doc.id);
+                const getStudent =  await student.get();
+                const studentData = getStudent.data();
+                const studentClassroom = studentData.classrooms;
+                
+                studentClassroom.splice(studentClassroom.findIndex(data => data.id === id),1);
+                // console.log(studentData);
+                await student.update(studentData)
+            });
+            classroom.students = [];
+        
+            await classroomById.update(classroom);
+
+            res.send('All Student left classroom successfuly');
+        
+    } catch (error) {
+        res.status(400).send(error.message);
+    }
+}
 
 module.exports = {
     createClassroom,
@@ -391,5 +447,6 @@ module.exports = {
     getStudentByClassroomId,
     updateClassroom,
     getClassroomById,
-    kickStudntInClassroom
+    kickStudntInClassroom,
+    kickAllStudntInClassroom
 }

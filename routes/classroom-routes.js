@@ -1,5 +1,5 @@
 const express = require('express');
-const {createClassroom, getClassroomByPinCode, joinClassroom, leftClassroom, generatePinCode, deletePinCode, deleteClassroom, getStudentByClassroomId, updateClassroom, getClassroomById, kickStudntInClassroom
+const {createClassroom, getClassroomByPinCode, joinClassroom, leftClassroom, generatePinCode, deletePinCode, deleteClassroom, getStudentByClassroomId, updateClassroom, getClassroomById, kickStudntInClassroom, kickAllStudntInClassroom
       } = require('../controllers/classroomController');
 
 const router = express.Router();
@@ -15,6 +15,7 @@ router.delete('/classroom/:id', deleteClassroom);
 router.put('/update/classroom/:id', updateClassroom);
 router.get('/getClassroom/byClassroomId/:id', getClassroomById);
 router.delete('/kick/student/:classroomId/:studentId', kickStudntInClassroom);
+router.delete('/kick/allStudent/:classroomId', kickAllStudntInClassroom);
 
 module.exports = {
     routes: router
