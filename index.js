@@ -165,6 +165,7 @@ const saveQuizHistory = async (data, quizId) => {
     data.quizId = quizId;
     let quizHistory = structuredClone(data);
     //Set quizHistory data
+    delete quizHistory.currentQuestion;
     quizHistory.quizData.numberQuestions = quizHistory.quizData.questions.filter((question) => {
         return question.type !== "poll";
     }).length;
@@ -176,6 +177,14 @@ const saveQuizHistory = async (data, quizId) => {
             return !quiz.studentAnswer && quiz.type !== "poll";
         }).length;
     });
+    //Calculate avg correct answers
+    let sumAnswers = 0;
+    let memberInClass = quizHistory.members.length;
+    quizHistory.members.forEach((member) => {
+        sumAnswers += member.numberCorrectAnswers;
+    });
+    quizHistory.quizData.avgCorrectAnswers = (sumAnswers / memberInClass).toFixed(2);
+
     const quizHistoryNew = await firestore.collection("quizHistories").add(structuredClone(quizHistory));
     const quizHistoryId = await quizHistoryNew.id;
     if (data.quizData.classroomId) {
@@ -189,20 +198,13 @@ const saveQuizHistory = async (data, quizId) => {
         quizHistoryData.quizData.classroomName = await classroomData.name;
         await quizHistory.update(quizHistoryData);
 
-        //เดี๋ยวมาดูหลังสอบ
-        // var quizData = data.quizData
-        // delete quizData.quistion
-        // var historyInClass = {
-        //     "quizId": data.quizId,
-        //     "quizData": quizData,
-        //     "crateAt ": data.createAt
-        // }
-
-        // if (classroomData.quizHistories) {
-        //     classroomData.quizHistories.push(historyInClass)
-        // } else classroomData.quizHistories = [historyInClass]
-
-        // await classroom.update(classroomData);
+        let historyData = structuredClone(quizHistoryData);
+        delete historyData.currentQuestion;
+        delete historyData.members;
+        if (classroomData?.quizHistories.length > 0) {
+            classroomData.quizHistories.push(historyData);
+        } else classroomData.quizHistories = [historyData];
+        await classroom.update(classroomData);
     }
     return data;
 };
