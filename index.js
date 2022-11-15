@@ -200,8 +200,7 @@ const saveQuizHistory = async (data, quizId) => {
 
         let historyData = structuredClone(quizHistoryData);
         delete historyData.currentQuestion;
-        delete historyData.members;
-        if (classroomData?.quizHistories.length > 0) {
+        if (classroomData.quizHistories) {
             classroomData.quizHistories.push(historyData);
         } else classroomData.quizHistories = [historyData];
         await classroom.update(classroomData);
