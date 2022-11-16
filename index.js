@@ -234,6 +234,7 @@ const pushNotification = async (notification) => {
     const classroom = await firestore.collection("classrooms").doc(notification.classroomId);
     const classroomData = await classroom.get();
     const students = await classroomData.data().students;
+    notification.classroomName = classroomData.data().name;
     students.forEach(async (student) => {
         notification.uid = student.uid;
         notification.isRead = false;
@@ -258,8 +259,13 @@ io.on("connection", async (socket) => {
         socket.join(data);
     });
 
-    socket.on("leave-classrooms", (data) => {
-        socket.leave(data);
+    socket.on("leave-classrooms", (classroomId) => {
+        socket.leave(classroomId);
+    });
+
+    socket.on("delete-event-classroom", (classroomId) => {
+        io.to(classroomId).emit("event-deleted", classroomId);
+        socket.leave(classroomId);
     });
 
     socket.on("init-game", (data) => {
