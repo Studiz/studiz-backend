@@ -224,10 +224,9 @@ const joinClassroom = async (req, res, next) => {
                 // await studentById.update(dataStudent)
                 // await classroomById.update(classroom);
                 res.send('Student record updated successfuly');
-            }else res.send('Student is already in classroom');
-            } else res.send('Student is already in classroom');
+            }else res.status(406).send('Student is already in classroom')
+            } else res.status(406).send('Student is already in classroom')
         }
-
 
     } catch (error) {
         res.status(400).send(error.message);
