@@ -269,181 +269,222 @@ io.on("connection", async (socket) => {
     });
 
     socket.on("init-game", (data) => {
-        if (!alreadyHasQuiz(data.quizId)) {
-            let notificationData = Object.assign({}, data.quizData);
-            notificationData.quizId = data.quizId;
-            delete notificationData.questions;
+        try {
+            if (!alreadyHasQuiz(data.quizId)) {
+                let notificationData = Object.assign({}, data.quizData);
+                notificationData.quizId = data.quizId;
+                delete notificationData.questions;
 
-            if (notificationData.classroomId) {
-                pushNotification(notificationData).then(() => {
-                    io.to(data.quizData.classroomId).emit("notification-quiz", notificationData);
-                });
+                if (notificationData.classroomId) {
+                    pushNotification(notificationData).then(() => {
+                        io.to(data.quizData.classroomId).emit("notification-quiz", notificationData);
+                    });
+                }
             }
+
+            socket.join(data.quizId);
+            let defaultData = {
+                members: new Array(),
+                quizData: data.quizData,
+                currentQuestion: 0,
+                leaderboard: {},
+            };
+
+            rooms.set(data.quizId, defaultData);
+        } catch (error) {
+            console.log(error);
         }
-
-        socket.join(data.quizId);
-        let defaultData = {
-            members: new Array(),
-            quizData: data.quizData,
-            currentQuestion: 0,
-            leaderboard: {},
-        };
-
-        rooms.set(data.quizId, defaultData);
     });
 
     socket.on("join-lobby", (data) => {
-        socket.join(data.quizId);
-        if (alreadyHasQuiz(data.quizId)) {
-            if (getMembers(data.quizId).length > 0) {
-                if (!getMembers(data.quizId).some((member) => member.memberId === data.memberId)) {
-                    getMembers(data.quizId).push(data);
+        try {
+            socket.join(data.quizId);
+            if (alreadyHasQuiz(data.quizId)) {
+                if (getMembers(data.quizId).length > 0) {
+                    console.log(getMembers(data.quizId).some((member) => member.memberId === data.memberId));
+                    if (!getMembers(data.quizId).some((member) => member.memberId === data.memberId)) {
+                        getMembers(data.quizId).push(data);
+                    } else {
+                        let index = getMembers(data.quizId).findIndex((member) => member.memberId === data.memberId);
+                        getMembers(data.quizId)[index].socketId = data.socketId;
+                    }
                 } else {
-                    let index = getMembers(data.quizId).findIndex((member) => member.memberId === data.memberId);
-                    getMembers(data.quizId)[index].socketId = data.socketId;
+                    getMembers(data.quizId).push(data);
                 }
+                io.to(data.quizId).emit("joined", getMembers(data.quizId));
             } else {
-                getMembers(data.quizId).push(data);
+                io.to(data.quizId).emit("quiz-end");
+                socket.leave(data.quizId);
             }
-            io.to(data.quizId).emit("joined", getMembers(data.quizId));
-        } else {
-            io.to(data.quizId).emit("quiz-end");
-            socket.leave(data.quizId);
+        } catch (error) {
+            console.log(error);
         }
     });
 
     socket.on("leave-lobby", (data) => {
-        if (getMembers(data.quizId).length > 0) {
-            let index = getMembers(data.quizId).findIndex((member) => member.memberId === data.memberId);
-            getMembers(data.quizId).splice(index, 1);
-            io.to(data.quizId).emit("joined", getMembers(data.quizId));
-            socket.leave(data.quizId);
+        try {
+            if (getMembers(data.quizId).length > 0) {
+                let index = getMembers(data.quizId).findIndex((member) => member.memberId === data.memberId);
+                getMembers(data.quizId).splice(index, 1);
+                io.to(data.quizId).emit("joined", getMembers(data.quizId));
+                socket.leave(data.quizId);
+            }
+        } catch (error) {
+            console.log(error);
         }
     });
 
     socket.on("start-game", (data) => {
-        let currentQuestion = getCurrentQuestionIndex(data.quizId);
-        startQuiz(data.quizId);
-        io.to(data.quizId).emit("move-to-quiz", getQustionsForStudent(data.quizId, currentQuestion));
+        try {
+            let currentQuestion = getCurrentQuestionIndex(data.quizId);
+            startQuiz(data.quizId);
+            io.to(data.quizId).emit("move-to-quiz", getQustionsForStudent(data.quizId, currentQuestion));
+        } catch (error) {
+            console.log(error);
+        }
     });
 
     socket.on("end-game", (data) => {
-        endQuiz(data.quizId);
-        io.to(data.quizId).emit("move-to-home");
-        socket.leave(data.quizId);
-        rooms.delete(data.quizId);
+        try {
+            endQuiz(data.quizId);
+            io.to(data.quizId).emit("move-to-home");
+            socket.leave(data.quizId);
+            rooms.delete(data.quizId);
+        } catch (error) {
+            console.log(error);
+        }
     });
 
     socket.on("select-choice", (data) => {
-        let useItemAddScore = data?.item?.code.includes("P");
-        let questionData = structuredClone(getCurrentQuestionData(data.quizId));
-        let score = Math.round(1000 * (1 - (data.timeAnswer / questionData.time) * (1 / 2)));
-        if (useItemAddScore) {
-            score = Math.round(score * data.item.value);
+        try {
+            let useItemAddScore = data?.item?.code.includes("P");
+            let questionData = structuredClone(getCurrentQuestionData(data.quizId));
+            let score = Math.round(1000 * (1 - (data.timeAnswer / questionData.time) * (1 / 2)));
+            if (useItemAddScore) {
+                score = Math.round(score * data.item.value);
+            }
+            if (data.item) {
+                questionData.item = data.item;
+            }
+            questionData.score = checkAnswers(data.quizId, data.answer) ? score : 0;
+            questionData.studentAnswer = checkAnswers(data.quizId, data.answer);
+            questionData.indexStudentAnswer = data.answer.index;
+            if (questionData.type === "multiple") {
+                questionData.indexStudentAnswer = data.answer.map((answer) => answer.index);
+            }
+            if (!(questionData.type === "poll")) {
+                getMemberData(data.quizId, data.memberId).quizData.push(questionData);
+                getMemberData(data.quizId, data.memberId).totalScore += questionData.score;
+                io.to(data.quizId).emit("check-answer", correctAnswer(data.quizId));
+            } else {
+                questionData.answer.options[data.answer.index].selected = 1;
+                getMemberData(data.quizId, data.memberId)?.quizData.push(questionData);
+            }
+            let numStudentAnswer = getMembers(data.quizId).filter((member) => member.quizData.length === getCurrentQuestionIndex(data.quizId) + 1).length;
+            io.to(data.quizId).emit("show-number-answers", numStudentAnswer);
+        } catch (error) {
+            console.log(error);
         }
-        if (data.item) {
-            questionData.item = data.item;
-        }
-        questionData.score = checkAnswers(data.quizId, data.answer) ? score : 0;
-        questionData.studentAnswer = checkAnswers(data.quizId, data.answer);
-        questionData.indexStudentAnswer = data.answer.index;
-        if (questionData.type === "multiple") {
-            questionData.indexStudentAnswer = data.answer.map((answer) => answer.index);
-        }
-        if (!(questionData.type === "poll")) {
-            getMemberData(data.quizId, data.memberId).quizData.push(questionData);
-            getMemberData(data.quizId, data.memberId).totalScore += questionData.score;
-            io.to(data.quizId).emit("check-answer", correctAnswer(data.quizId));
-        } else {
-            questionData.answer.options[data.answer.index].selected = 1;
-            getMemberData(data.quizId, data.memberId)?.quizData.push(questionData);
-        }
-        let numStudentAnswer = getMembers(data.quizId).filter((member) => member.quizData.length === getCurrentQuestionIndex(data.quizId) + 1).length;
-        io.to(data.quizId).emit("show-number-answers", numStudentAnswer);
     });
 
     socket.on("send-leaderboard", (data) => {
-        let leaderboard = getMembers(data.quizId).map((member) => {
-            return {
-                displayName: member.user.displayName,
-                role: member.user.role,
-                image: member.user.imageUrl,
-                scoreInRound: member.quizData[getCurrentQuestionIndex(data.quizId)]?.score,
-                score: member.totalScore,
-            };
-        });
-        io.to(data.quizId).emit("show-leaderboard", leaderboard);
-    });
-
-    socket.on("get-poll-result", (data) => {
-        let questionData = structuredClone(getCurrentQuestionData(data.quizId));
-        let listPoll = [];
-        let allChoice = questionData.answer.options;
-        let allAnswer = getMembers(data.quizId).filter((member) => {
-            return member.quizData[getCurrentQuestionIndex(data.quizId)]?.answer.options.some((option) => option.selected === 1);
-        }).length;
-
-        for (let i = 0; i < allChoice.length; i++) {
-            allChoice[i].selected = getMembers(data.quizId).filter((member) => {
-                return member.quizData[getCurrentQuestionIndex(data.quizId)]?.answer.options[i].selected === 1;
-            }).length;
-
-            listPoll.push(allChoice[i].selected > 0 ? Math.round((allChoice[i].selected / allAnswer) * 100) : 0);
-        }
-
-        for (let i = 0; i < questionData.answer.options.length; i++) {
-            questionData.answer.options[i].selected = listPoll[i];
-        }
-
-        getMembers(data.quizId).forEach((member) => {
-            member.quizData[getCurrentQuestionIndex(data.quizId)] = questionData;
-        });
-
-        io.to(data.quizId).emit("show-poll-result", listPoll);
-    });
-
-    socket.on("send-next-question", (data) => {
-        // getCurrentQuestionIndex(data.quizId) = getCurrentQuestionIndex(data.quizId) + 1
-        // nextQuestion(data.quizId)
-        if (hasNextQuestion(data.quizId)) {
-            io.to(data.quizId).emit("show-next-question", nextQuestion(data.quizId));
-        } else {
+        try {
             let leaderboard = getMembers(data.quizId).map((member) => {
                 return {
                     displayName: member.user.displayName,
                     role: member.user.role,
                     image: member.user.imageUrl,
+                    scoreInRound: member.quizData[getCurrentQuestionIndex(data.quizId)]?.score,
                     score: member.totalScore,
                 };
             });
+            io.to(data.quizId).emit("show-leaderboard", leaderboard);
+        } catch (error) {
+            console.log(error);
+        }
+    });
 
-            //Sort leaderboard
-            getRoom(data.quizId).leaderboard.members = leaderboard.sort((member1, member2) => {
-                return member2.score - member1.score;
-            });
-            //Set the winner
-            getRoom(data.quizId).leaderboard.winner = getRoom(data.quizId).leaderboard.members[0];
+    socket.on("get-poll-result", (data) => {
+        try {
+            let questionData = structuredClone(getCurrentQuestionData(data.quizId));
+            let listPoll = [];
+            let allChoice = questionData.answer.options;
+            let allAnswer = getMembers(data.quizId).filter((member) => {
+                return member.quizData[getCurrentQuestionIndex(data.quizId)]?.answer.options.some((option) => option.selected === 1);
+            }).length;
 
-            //Save quiz history
-            saveQuizHistory(rooms.get(data.quizId), data.quizId).then((data) => {
-                io.to(data.quizId).emit("show-quiz-summary", rooms.get(data.quizId));
-                endQuiz(data.quizId);
-                rooms.delete(data.quizId);
-                socket.leave(data.quizId);
+            for (let i = 0; i < allChoice.length; i++) {
+                allChoice[i].selected = getMembers(data.quizId).filter((member) => {
+                    return member.quizData[getCurrentQuestionIndex(data.quizId)]?.answer.options[i].selected === 1;
+                }).length;
+
+                listPoll.push(allChoice[i].selected > 0 ? Math.round((allChoice[i].selected / allAnswer) * 100) : 0);
+            }
+
+            for (let i = 0; i < questionData.answer.options.length; i++) {
+                questionData.answer.options[i].selected = listPoll[i];
+            }
+
+            getMembers(data.quizId).forEach((member) => {
+                member.quizData[getCurrentQuestionIndex(data.quizId)] = questionData;
             });
+
+            io.to(data.quizId).emit("show-poll-result", listPoll);
+        } catch (error) {
+            console.log(error);
+        }
+    });
+
+    socket.on("send-next-question", (data) => {
+        // getCurrentQuestionIndex(data.quizId) = getCurrentQuestionIndex(data.quizId) + 1
+        // nextQuestion(data.quizId)
+        try {
+            if (hasNextQuestion(data.quizId)) {
+                io.to(data.quizId).emit("show-next-question", nextQuestion(data.quizId));
+            } else {
+                let leaderboard = getMembers(data.quizId).map((member) => {
+                    return {
+                        displayName: member.user.displayName,
+                        role: member.user.role,
+                        image: member.user.imageUrl,
+                        score: member.totalScore,
+                    };
+                });
+
+                //Sort leaderboard
+                getRoom(data.quizId).leaderboard.members = leaderboard.sort((member1, member2) => {
+                    return member2.score - member1.score;
+                });
+                //Set the winner
+                getRoom(data.quizId).leaderboard.winner = getRoom(data.quizId).leaderboard.members[0];
+
+                //Save quiz history
+                saveQuizHistory(rooms.get(data.quizId), data.quizId).then((data) => {
+                    io.to(data.quizId).emit("show-quiz-summary", rooms.get(data.quizId));
+                    endQuiz(data.quizId);
+                    rooms.delete(data.quizId);
+                    socket.leave(data.quizId);
+                });
+            }
+        } catch (error) {
+            console.log(error);
         }
     });
 
     socket.on("disconnect", () => {
-        rooms.forEach((value, key) => {
-            if (value.members.length > 0) {
-                if (value.members.some((member) => member.socketId === socket.id)) {
-                    let index = value.members.findIndex((member) => member.socketId === socket.id);
-                    value.members.splice(index, 1);
-                    io.to(key).emit("joined", value.members);
-                    socket.leave(key);
+        try {
+            rooms.forEach((value, key) => {
+                if (value.members.length > 0) {
+                    if (value.members.some((member) => member.socketId === socket.id)) {
+                        let index = value.members.findIndex((member) => member.socketId === socket.id);
+                        value.members.splice(index, 1);
+                        io.to(key).emit("joined", value.members);
+                        socket.leave(key);
+                    }
                 }
-            }
-        });
+            });
+        } catch (error) {
+            console.log(error);
+        }
     });
 });
