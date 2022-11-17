@@ -7,14 +7,14 @@ const middleware = require('../middleware');
 
 const createClassroom = async (req, res, next) => {
     try {
-        try{
+        try {
             var decodeToken = jwtDecode(req.headers.token);
-            } catch (error) {
-               return res.status(401).json({
-                    "errCode" : 401,
-                    "errText" : "Unauthorized"
-                });
-            }
+        } catch (error) {
+            return res.status(401).json({
+                "errCode": 401,
+                "errText": "Unauthorized"
+            });
+        }
         const data = req.body;
         const teacherById = await firestore.collection('teachers').doc(data.teacherId);
         const dataTeacherById = await teacherById.get();
@@ -81,12 +81,12 @@ const deletePinCode = async (req, res, next) => {
         const classroomById = await allClassroom.doc(id)
         var getClass = await classroomById.get()
         var classroom = getClass.data()
-        if(!classroom) {
+        if (!classroom) {
             return res.status(400).json({
-                "errText" : "Classroom id invalid",
-                "errCode" : 400
+                "errText": "Classroom id invalid",
+                "errCode": 400
             })
-        } 
+        }
         delete classroom['pinCode'];
         console.log(classroom);
         await classroomById.set(classroom);
@@ -135,19 +135,23 @@ const getStudentByClassroomId = async (req, res, next) => {
 
 const joinClassroom = async (req, res, next) => {
     try {
-        try{
+        try {
             var decodeToken = jwtDecode(req.headers.token);
-            } catch (error) {
-               return res.status(401).json({
-                    "errCode" : 401,
-                    "errText" : "Unauthorized"
-                });
-            }
+        } catch (error) {
+            return res.status(401).json({
+                "errCode": 401,
+                "errText": "Unauthorized"
+            });
+        }
+        const uid = decodeToken.user_id
         const id = req.params.studentId;
         const allClassroom = firestore.collection('classrooms');
         console.log(req.params.pinCode);
         const snapshot = await allClassroom.where('pinCode', '==', Number(req.params.pinCode)).get();
-
+        const students = await firestore.collection("students");
+        const getStudent = await students.get();
+        const studentArray = [];
+        // console.log(snapshot.data());
         // console.log(snapshot);
         var classIdFromPinCode
         var classroomData
@@ -157,7 +161,22 @@ const joinClassroom = async (req, res, next) => {
             snapshot.forEach(doc => {
                 classIdFromPinCode = doc.id
             });
-
+            getStudent.forEach((doc) => {
+                const docData = doc.data();
+                docData.id = doc.id
+                studentArray.push(docData);
+            });
+            const filterData = studentArray.filter((student) => {
+                return uid.includes(student.uid)
+            })
+            const classroomInstudent = filterData[0].classrooms
+            // console.log(classroomInstudent);
+            // console.log(filterClassroom);
+            const filterClassroom = classroomInstudent.filter((classroom) => {
+                return classIdFromPinCode.includes(classroom.id)
+            })
+              console.log(filterClassroom);
+            if(filterClassroom.length === 0) {
 
             // const id = req.params.studentId;
             const classroomById = await allClassroom.doc(classIdFromPinCode)
@@ -205,9 +224,9 @@ const joinClassroom = async (req, res, next) => {
                 // await studentById.update(dataStudent)
                 // await classroomById.update(classroom);
                 res.send('Student record updated successfuly');
-            } else res.send('Student is alrady in classroom');
+            }else res.status(406).send('Student is already in classroom')
+            } else res.status(406).send('Student is already in classroom')
         }
-    
 
     } catch (error) {
         res.status(400).send(error.message);
@@ -254,23 +273,23 @@ const deleteClassroom = async (req, res, next) => {
         const classroomData = getClassroom.data();
         const teacherInclass = classroomData.teacher
         const teacher = await firestore.collection('teachers').doc(teacherInclass.id);
-        const getTeacher =  await teacher.get();
+        const getTeacher = await teacher.get();
         const teacherData = getTeacher.data();
         const teacherClassroom = teacherData.classrooms;
 
-        teacherClassroom.splice(teacherClassroom.findIndex(data => data.id === id),1);
+        teacherClassroom.splice(teacherClassroom.findIndex(data => data.id === id), 1);
         await teacher.update(teacherData)
 
         const students = classroomData.students
         // console.log(classroomData);
         students.forEach(async doc => {
             const student = await firestore.collection('students').doc(doc.id);
-            const getStudent =  await student.get();
+            const getStudent = await student.get();
             const studentData = getStudent.data();
             const studentClassroom = studentData.classrooms;
             // console.log(studentData);
-            
-            studentClassroom.splice(studentClassroom.findIndex(data => data.id === id),1);
+
+            studentClassroom.splice(studentClassroom.findIndex(data => data.id === id), 1);
             await student.update(studentData)
         });
 
@@ -315,7 +334,7 @@ const updateClassroom = async (req, res, next) => {
         const classroomInstd = teacherData.classrooms
         classroomInstd.forEach(data => {
             if (data.id == id) {
-                    data.id = id,
+                data.id = id,
                     data.name = body.name,
                     data.description = body.description,
                     data.color = body.color,
@@ -332,14 +351,42 @@ const updateClassroom = async (req, res, next) => {
 
 const getClassroomById = async (req, res, next) => {
     try {
+        try {
+            var decodeToken = jwtDecode(req.headers.token);
+        } catch (error) {
+            return res.status(401).json({
+                "errCode": 401,
+                "errText": "Unauthorized"
+            });
+        }
+        const uid = decodeToken.user_id
         const id = req.params.id;
         const classroom = await firestore.collection('classrooms').doc(id);
         const data = await classroom.get();
-        if (!data.exists) {
-            res.status(404).send('Classroom with the given ID not found');
-        } else {
-            res.send(data.data());
-        }
+        // console.log(decodeToken); 
+        const students = await firestore.collection("students");
+        const getStudent = await students.get();
+        const studentArray = [];
+        getStudent.forEach((doc) => {
+                const docData = doc.data();
+                docData.id = doc.id
+                studentArray.push(docData);
+            });
+        
+        const filterData = studentArray.filter((student) => {
+            return uid.includes(student.uid)
+        })
+        // console.log(filterData);
+        const classroomInstudent = filterData[0].classrooms
+        // console.log(filterClassroom);
+        const filterClassroom = classroomInstudent?.filter((classroom) => {
+            return id.includes(classroom.id)
+        })
+        console.log(filterClassroom);
+        if(filterClassroom.length === 0) {
+            res.status(406).send("You don't have permission to see this classroom");
+           
+        }else  res.status(200).send(data.data());
     } catch (error) {
         res.status(400).send(error.message);
     }
@@ -357,41 +404,41 @@ function checkDupplicateStudent(students, id) {
 
 const kickStudntInClassroom = async (req, res, next) => {
     try {
-       
-        try{
+
+        try {
             var decodeToken = jwtDecode(req.headers.token);
-            } catch (error) {
-               return res.status(401).json({
-                    "errCode" : 401,
-                    "errText" : "Unauthorized"
-                });
-            }
-            const allClassroom = firestore.collection('classrooms');
-            const id = req.params.classroomId;
-            const studentId = req.params.studentId;
-            const classroomById = await allClassroom.doc(id)
-            var getClass = await classroomById.get()
-            var classroom = getClass.data()
-            // delete classroom.students[studentId];
-            // await classroomById.set(classroom);
-            classroomById.set({
-                students: [...classroom.students.filter(student => student.id !== studentId)],
-            }, {
-                merge: true
-            })
+        } catch (error) {
+            return res.status(401).json({
+                "errCode": 401,
+                "errText": "Unauthorized"
+            });
+        }
+        const allClassroom = firestore.collection('classrooms');
+        const id = req.params.classroomId;
+        const studentId = req.params.studentId;
+        const classroomById = await allClassroom.doc(id)
+        var getClass = await classroomById.get()
+        var classroom = getClass.data()
+        // delete classroom.students[studentId];
+        // await classroomById.set(classroom);
+        classroomById.set({
+            students: [...classroom.students.filter(student => student.id !== studentId)],
+        }, {
+            merge: true
+        })
 
-            // Delete classrooms in user profile
-            const studentById = await firestore.collection('students').doc(studentId);
-            const dataStudentById = await studentById.get();
-            var dataStudent = dataStudentById.data()
-            studentById.set({
-                classrooms: [...dataStudent.classrooms.filter(classroom => classroom.id !== id)],
-            }, {
-                merge: true
-            })
+        // Delete classrooms in user profile
+        const studentById = await firestore.collection('students').doc(studentId);
+        const dataStudentById = await studentById.get();
+        var dataStudent = dataStudentById.data()
+        studentById.set({
+            classrooms: [...dataStudent.classrooms.filter(classroom => classroom.id !== id)],
+        }, {
+            merge: true
+        })
 
-            res.send('Student left classroom successfuly');
-        
+        res.send('Student left classroom successfuly');
+
     } catch (error) {
         res.status(400).send(error.message);
     }
@@ -399,38 +446,38 @@ const kickStudntInClassroom = async (req, res, next) => {
 
 const kickAllStudntInClassroom = async (req, res, next) => {
     try {
-        try{
+        try {
             var decodeToken = jwtDecode(req.headers.token);
-            } catch (error) {
-               return res.status(401).json({
-                    "errCode" : 401,
-                    "errText" : "Unauthorized"
-                });
-            }
-            const allClassroom = firestore.collection('classrooms');
-            const id = req.params.classroomId;
-            const classroomById = await allClassroom.doc(id)
-            var getClass = await classroomById.get()
-            var classroom = getClass.data()
-            const students = classroom.students
-
-            // Delete classrooms in user profile
-            students.forEach(async doc => {
-                const student = await firestore.collection('students').doc(doc.id);
-                const getStudent =  await student.get();
-                const studentData = getStudent.data();
-                const studentClassroom = studentData.classrooms;
-                
-                studentClassroom.splice(studentClassroom.findIndex(data => data.id === id),1);
-                // console.log(studentData);
-                await student.update(studentData)
+        } catch (error) {
+            return res.status(401).json({
+                "errCode": 401,
+                "errText": "Unauthorized"
             });
-            classroom.students = [];
-        
-            await classroomById.update(classroom);
+        }
+        const allClassroom = firestore.collection('classrooms');
+        const id = req.params.classroomId;
+        const classroomById = await allClassroom.doc(id)
+        var getClass = await classroomById.get()
+        var classroom = getClass.data()
+        const students = classroom.students
 
-            res.send('All Student left classroom successfuly');
-        
+        // Delete classrooms in user profile
+        students.forEach(async doc => {
+            const student = await firestore.collection('students').doc(doc.id);
+            const getStudent = await student.get();
+            const studentData = getStudent.data();
+            const studentClassroom = studentData.classrooms;
+
+            studentClassroom.splice(studentClassroom.findIndex(data => data.id === id), 1);
+            // console.log(studentData);
+            await student.update(studentData)
+        });
+        classroom.students = [];
+
+        await classroomById.update(classroom);
+
+        res.send('All Student left classroom successfuly');
+
     } catch (error) {
         res.status(400).send(error.message);
     }
