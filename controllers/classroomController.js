@@ -402,7 +402,7 @@ function checkDupplicateStudent(students, id) {
     return isDupplicate
 }
 
-const kickStudntInClassroom = async (req, res, next) => {
+const kickStudentInClassroom = async (req, res, next) => {
     try {
 
         try {
@@ -419,8 +419,7 @@ const kickStudntInClassroom = async (req, res, next) => {
         const classroomById = await allClassroom.doc(id)
         var getClass = await classroomById.get()
         var classroom = getClass.data()
-        // delete classroom.students[studentId];
-        // await classroomById.set(classroom);
+    
         classroomById.set({
             students: [...classroom.students.filter(student => student.id !== studentId)],
         }, {
@@ -483,6 +482,47 @@ const kickAllStudntInClassroom = async (req, res, next) => {
     }
 }
 
+const kickListStudents = async (req, res, next) => {
+    try {
+        try {
+            var decodeToken = jwtDecode(req.headers.token);
+        } catch (error) {
+            return res.status(401).json({
+                "errCode": 401,
+                "errText": "Unauthorized"
+            });
+        }
+        const allClassroom = firestore.collection('classrooms');
+        const id = req.params.classroomId;
+        const studentsId = req.body.studentsId;
+        const classroomById = await allClassroom.doc(id)
+        var getClass = await classroomById.get()
+        var classroom = getClass.data()
+    
+      // Delete classrooms in user profile
+        for (let i = 0; i < studentsId.length; i++) {
+            classroomById.set({
+                students: [...classroom.students.filter(student => student.id !== studentsId[i])],
+            }, {
+                merge: true
+            })
+            const student = await firestore.collection('students').doc(studentsId[i]);
+            const getStudent = await student.get();
+            const studentData = getStudent.data();
+            const studentClassroom = studentData.classrooms;
+            console.log(studentData);
+            studentClassroom.splice(studentClassroom.findIndex(data => data.id === id), 1);
+            console.log(studentData);
+            await student.update(studentData)
+        }
+  
+        res.send('Student left classroom successfuly');
+
+    } catch (error) {
+        res.status(400).send(error.message);
+    }
+}
+
 module.exports = {
     createClassroom,
     getClassroomByPinCode,
@@ -494,6 +534,7 @@ module.exports = {
     getStudentByClassroomId,
     updateClassroom,
     getClassroomById,
-    kickStudntInClassroom,
-    kickAllStudntInClassroom
+    kickStudentInClassroom,
+    kickAllStudntInClassroom,
+    kickListStudents
 }
