@@ -387,6 +387,22 @@ io.on("connection", async (socket) => {
         }
     });
 
+    socket.on("time-up", (data) => {
+        try {
+            let questionData = structuredClone(getCurrentQuestionData(data.quizId));
+            questionData.score = 0;
+            questionData.studentAnswer = false;
+            questionData.indexStudentAnswer = -1;
+            if (data.item) {
+                questionData.item = data.item;
+            }
+            getMemberData(data.quizId, data.memberId)?.quizData.push(questionData);
+            io.to(data.quizId).emit("check-answer", correctAnswer(data.quizId));
+        } catch (error) {
+            console.log(error);
+        }
+    });
+
     socket.on("send-leaderboard", (data) => {
         try {
             let leaderboard = getMembers(data.quizId).map((member) => {
