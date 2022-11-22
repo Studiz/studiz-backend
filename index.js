@@ -216,6 +216,7 @@ const endQuiz = async (quizId) => {
     const quizData = await getQuiz.data();
 
     quizData.isLive = false;
+    quizData.isEnded = true;
     await quiz.update(quizData);
 
     return quizData;
@@ -314,9 +315,6 @@ io.on("connection", async (socket) => {
                     getMembers(data.quizId).push(data);
                 }
                 io.to(data.quizId).emit("joined", getMembers(data.quizId));
-            } else {
-                io.to(data.quizId).emit("quiz-end");
-                socket.leave(data.quizId);
             }
         } catch (error) {
             console.log(error);
