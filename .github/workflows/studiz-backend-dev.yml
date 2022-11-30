@@ -25,10 +25,6 @@ jobs:
           push: true
           tags: ghcr.io/studiz/studiz-backend:dev
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
       - name: Copy file via ssh password
         uses: appleboy/scp-action@master
         with:
@@ -39,6 +35,10 @@ jobs:
           source: ./docker-compose.dev.yml
           target: ~/studiz-backend/dev/
 
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
       - name: Pull images and deploy
         uses: appleboy/ssh-action@master
         with:
