@@ -25,6 +25,10 @@ jobs:
           push: true
           tags: ghcr.io/studiz/studiz-backend:dev
 
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
       - name: Copy file via ssh password
         uses: appleboy/scp-action@master
         with:
@@ -35,10 +39,6 @@ jobs:
           source: ./docker-compose.dev.yml
           target: ~/studiz-backend/dev/
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
       - name: Pull images and deploy
         uses: appleboy/ssh-action@master
         with:
@@ -50,5 +50,4 @@ jobs:
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
             docker rmi -f ghcr.io/studiz/studiz-backend:dev
             docker pull ghcr.io/studiz/studiz-backend:dev
-            docker rm -f studiz-backend
             docker-compose -f ~/studiz-backend/dev/docker-compose.dev.yml up -d
