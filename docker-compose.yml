@@ -6,7 +6,7 @@ services:
         # image: ghcr.io/studiz/studiz-backend:dev
         restart: on-failure
         ports:
-        - "9091:9091"
+        - "80:80"
 networks:
     backend:
         external: true
