@@ -3,7 +3,7 @@ services:
     backend:
         container_name: studiz-backend
         build: .
-        image: ghcr.io/studiz/studiz-backend:dev
+        # image: ghcr.io/studiz/studiz-backend:dev
         restart: on-failure
         ports:
         - "9091:9091"
